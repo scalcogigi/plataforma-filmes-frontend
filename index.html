@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Comunidade</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23ff3b5c'/%3E%3Cpath d='M6 9h20v14H6zM10 9v14M16 9v14M22 9v14M6 13h20M6 19h20' fill='none' stroke='white' stroke-width='1.6'/%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="#fff" stroke-width="1.7" />
+            <path d="M7 5v14M12 5v14M17 5v14M3 9.5h18M3 14.5h18" stroke="#fff" stroke-width="1.4" />
+          </svg>
+        </div>
+        <nav aria-label="Principal">
+          <button class="nav-btn" type="button" data-action="nav" data-nav="inicio" data-label="Início">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
+            Início
+          </button>
+          <button class="nav-btn" type="button" data-action="nav" data-nav="explorar" data-label="Explorar">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="m16 16 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+            Explorar
+          </button>
+          <button class="nav-btn" type="button" data-action="nav" data-nav="lista" data-label="Minha lista">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /><path d="M4 6h.01M4 12h.01M4 18h.01" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" /></svg>
+            Minha lista
+          </button>
+          <button class="nav-btn is-active" type="button" data-action="nav" data-nav="comunidade" data-label="Comunidade" aria-current="page">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 11a3 3 0 1 0-3-3 3 3 0 0 0 3 3ZM16.5 11a2.5 2.5 0 1 0-2.5-2.5A2.5 2.5 0 0 0 16.5 11ZM3.5 19v-1.2A3.8 3.8 0 0 1 7.3 14h2.4a3.8 3.8 0 0 1 3.8 3.8V19M14 14h1.4a3.6 3.6 0 0 1 3.6 3.6V19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+            Comunidade
+          </button>
+          <div class="side-divider"></div>
+          <button class="nav-btn" type="button" data-action="nav" data-nav="filmes" data-label="Filmes">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="M7 5v14M12 5v14M17 5v14M3 9.5h18M3 14.5h18" fill="none" stroke="currentColor" stroke-width="1.4" /></svg>
+            Filmes
+          </button>
+          <button class="nav-btn" type="button" data-action="nav" data-nav="series" data-label="Séries">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="M8 21h8M12 17v4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+            Séries
+          </button>
+          <button class="nav-btn" type="button" data-action="nav" data-nav="lancamentos" data-label="Lançamentos">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="M8 3v4M16 3v4M4 10h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+            Lançamentos
+          </button>
+          <button class="nav-btn" type="button" data-action="nav" data-nav="generos" data-label="Gêneros">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8" /><rect x="13" y="4" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8" /><rect x="4" y="13" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8" /><rect x="13" y="13" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8" /></svg>
+            Gêneros
+          </button>
+        </nav>
+      </aside>
+
+      <div class="workspace">
+        <header class="topbar">
+          <label class="search">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="m16 16 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+            <input id="search" type="search" placeholder="Buscar filmes, diretores e gêneros" aria-label="Buscar filmes, diretores e gêneros" />
+          </label>
+          <div class="top-actions">
+            <div class="menu-anchor" data-menu>
+              <button class="icon-btn" type="button" data-open-menu aria-expanded="false" aria-label="Notificações">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V10a6 6 0 1 1 12 0v6l1.5 2H4.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /><path d="M10 19a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+              </button>
+              <div class="menu menu-wide">
+                <p class="menu-title">Notificações</p>
+                <button type="button" data-action="toast" data-message="Marina comentou na sua publicação sobre Oppenheimer">Marina comentou em Oppenheimer</button>
+                <button type="button" data-action="toast" data-message="Rafael começou a seguir você">Rafael começou a seguir você</button>
+              </div>
+            </div>
+            <div class="menu-anchor" data-menu>
+              <button class="user-chip" type="button" data-open-menu aria-expanded="false">
+                <span class="avatar lucas">L<img src="assets/lucas.jpg" alt="" /></span>
+                <span class="user-name">Lucas</span>
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+              </button>
+              <div class="menu">
+                <button type="button" data-action="nav" data-nav="perfil" data-label="Perfil">Meu perfil</button>
+                <button type="button" data-action="nav" data-nav="lista" data-label="Minha lista">Minha lista</button>
+                <button type="button" data-action="toast" data-message="Você saiu desta sessão de demonstração">Sair</button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div id="community-screen" class="layout">
+          <main>
+            <h1 class="page-title">Comunidade</h1>
+            <p class="page-sub">Vídeos, opiniões e histórias sobre o que você ama assistir.</p>
+            <div class="tabs" role="tablist" aria-label="Filtros da comunidade">
+              <button class="tab is-active" type="button" role="tab" aria-selected="true" data-action="tab" data-tab="para-voce">Para você</button>
+              <button class="tab" type="button" role="tab" aria-selected="false" data-action="tab" data-tab="seguindo">Seguindo</button>
+              <button class="tab" type="button" role="tab" aria-selected="false" data-action="tab" data-tab="videos">Vídeos</button>
+              <button class="tab" type="button" role="tab" aria-selected="false" data-action="tab" data-tab="criticas">Críticas</button>
+              <button class="tab" type="button" role="tab" aria-selected="false" data-action="tab" data-tab="noticias">Notícias</button>
+            </div>
+
+            <p id="feed-empty" class="feed-empty" hidden></p>
+
+            <section id="featured">
+              <div class="section-head">
+                <h2>Em destaque</h2>
+                <button class="linkish" id="show-all" type="button" data-action="all-videos">
+                  <span data-all-label>Ver tudo</span>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                </button>
+              </div>
+              <div class="video-grid">
+                <article class="video-card scene-space" data-author="Marina" data-title="O que Interestelar realmente nos ensina sobre o tempo?" data-search="marina o que interestelar realmente nos ensina sobre o tempo análise">
+                  <img class="cover" src="assets/astro.jpg" alt="" />
+                  <div class="video-shade"></div>
+                  <span class="duration">01:28</span>
+                  <div class="video-tools menu-anchor" data-menu>
+                    <button class="ghost-icon" type="button" data-open-menu aria-expanded="false" aria-label="Opções do vídeo">
+                      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.4" fill="currentColor" /><circle cx="12" cy="12" r="1.4" fill="currentColor" /><circle cx="18" cy="12" r="1.4" fill="currentColor" /></svg>
+                    </button>
+                    <div class="menu">
+                      <button type="button" data-action="save-video">Salvar na lista</button>
+                      <button type="button" data-action="share">Compartilhar</button>
+                    </div>
+                  </div>
+                  <button class="play" type="button" data-action="play" aria-label="Reproduzir O que Interestelar realmente nos ensina sobre o tempo?">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg>
+                  </button>
+                  <div class="video-meta">
+                    <div class="who"><span class="avatar sm marina">M<img src="assets/marina.jpg" alt="" /></span> Marina</div>
+                    <h3>O que Interestelar realmente nos ensina sobre o tempo?</h3>
+                    <div class="stats">
+                      <span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg> 125 mil</span>
+                      <span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.2-4.6-7.2-9.2A4.1 4.1 0 0 1 12 8a4.1 4.1 0 0 1 7.2 3.3c0 4.6-7.2 9.2-7.2 9.2z" fill="none" stroke="currentColor" stroke-width="1.8" /></svg> 12 mil</span>
+                    </div>
+                    <span class="pill">Análise</span>
+                  </div>
+                </article>
+
+                <article class="video-card scene-joker" data-author="Rafael" data-title="Os detalhes escondidos em Coringa que você provavelmente não viu" data-search="rafael os detalhes escondidos em coringa que você provavelmente não viu curiosidade">
+                  <img class="cover" src="assets/suit.jpg" alt="" />
+                  <div class="video-shade"></div>
+                  <span class="duration">02:14</span>
+                  <div class="video-tools menu-anchor" data-menu>
+                    <button class="ghost-icon" type="button" data-open-menu aria-expanded="false" aria-label="Opções do vídeo">
+                      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.4" fill="currentColor" /><circle cx="12" cy="12" r="1.4" fill="currentColor" /><circle cx="18" cy="12" r="1.4" fill="currentColor" /></svg>
+                    </button>
+                    <div class="menu">
+                      <button type="button" data-action="save-video">Salvar na lista</button>
+                      <button type="button" data-action="share">Compartilhar</button>
+                    </div>
+                  </div>
+                  <button class="play" type="button" data-action="play" aria-label="Reproduzir Os detalhes escondidos em Coringa que você provavelmente não viu">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg>
+                  </button>
+                  <div class="video-meta">
+                    <div class="who"><span class="avatar sm rafael">R<img src="assets/rafael.jpg" alt="" /></span> Rafael</div>
+                    <h3>Os detalhes escondidos em Coringa que você provavelmente não viu</h3>
+                    <div class="stats">
+                      <span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg> 89 mil</span>
+                      <span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.2-4.6-7.2-9.2A4.1 4.1 0 0 1 12 8a4.1 4.1 0 0 1 7.2 3.3c0 4.6-7.2 9.2-7.2 9.2z" fill="none" stroke="currentColor" stroke-width="1.8" /></svg> 9 mil</span>
+                    </div>
+                    <span class="pill">Curiosidade</span>
+                  </div>
+                </article>
+
+                <article class="video-card scene-guitar" data-author="Beatriz" data-title="A cena mais emocionante de The Last of Us" data-search="beatriz a cena mais emocionante de the last of us cena comentada">
+                  <img class="cover" src="assets/guitar.jpg" alt="" />
+                  <div class="video-shade"></div>
+                  <span class="duration">01:52</span>
+                  <div class="video-tools menu-anchor" data-menu>
+                    <button class="ghost-icon" type="button" data-open-menu aria-expanded="false" aria-label="Opções do vídeo">
+                      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.4" fill="currentColor" /><circle cx="12" cy="12" r="1.4" fill="currentColor" /><circle cx="18" cy="12" r="1.4" fill="currentColor" /></svg>
+                    </button>
+                    <div class="menu">
+                      <button type="button" data-action="save-video">Salvar na lista</button>
+                      <button type="button" data-action="share">Compartilhar</button>
+                    </div>
+                  </div>
+                  <button class="play" type="button" data-action="play" aria-label="Reproduzir A cena mais emocionante de The Last of Us">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg>
+                  </button>
+                  <div class="video-meta">
+                    <div class="who"><span class="avatar sm beatriz">B<img src="assets/beatriz.jpg" alt="" /></span> Beatriz</div>
+                    <h3>A cena mais emocionante de The Last of Us</h3>
+                    <div class="stats">
+                      <span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg> 320 mil</span>
+                      <span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.2-4.6-7.2-9.2A4.1 4.1 0 0 1 12 8a4.1 4.1 0 0 1 7.2 3.3c0 4.6-7.2 9.2-7.2 9.2z" fill="none" stroke="currentColor" stroke-width="1.8" /></svg> 28 mil</span>
+                    </div>
+                    <span class="pill">Cena comentada</span>
+                  </div>
+                </article>
+
+                <article class="video-card scene-blast" data-author="Lucas" data-title="5 motivos para assistir Oppenheimer (ainda hoje)" data-search="lucas 5 motivos para assistir oppenheimer ainda hoje recomendação">
+                  <img class="cover" src="assets/fire.jpg" alt="" />
+                  <div class="video-shade"></div>
+                  <span class="duration">01:37</span>
+                  <div class="video-tools menu-anchor" data-menu>
+                    <button class="ghost-icon" type="button" data-open-menu aria-expanded="false" aria-label="Opções do vídeo">
+                      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.4" fill="currentColor" /><circle cx="12" cy="12" r="1.4" fill="currentColor" /><circle cx="18" cy="12" r="1.4" fill="currentColor" /></svg>
+                    </button>
+                    <div class="menu">
+                      <button type="button" data-action="save-video">Salvar na lista</button>
+                      <button type="button" data-action="share">Compartilhar</button>
+                    </div>
+                  </div>
+                  <button class="play" type="button" data-action="play" aria-label="Reproduzir 5 motivos para assistir Oppenheimer">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg>
+                  </button>
+                  <div class="video-meta">
+                    <div class="who"><span class="avatar sm lucas">L<img src="assets/lucas.jpg" alt="" /></span> Lucas</div>
+                    <h3>5 motivos para assistir Oppenheimer (ainda hoje)</h3>
+                    <div class="stats">
+                      <span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg> 210 mil</span>
+                      <span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.2-4.6-7.2-9.2A4.1 4.1 0 0 1 12 8a4.1 4.1 0 0 1 7.2 3.3c0 4.6-7.2 9.2-7.2 9.2z" fill="none" stroke="currentColor" stroke-width="1.8" /></svg> 18 mil</span>
+                    </div>
+                    <span class="pill">Recomendação</span>
+                  </div>
+                </article>
+
+                <article class="video-card scene-joy" data-extra="true" hidden data-author="Marina" data-title="Como Divertida Mente 2 traduz a ansiedade" data-search="marina como divertida mente 2 traduz a ansiedade análise">
+                  <img class="cover" src="assets/color.jpg" alt="" />
+                  <div class="video-shade"></div>
+                  <span class="duration">03:05</span>
+                  <button class="play" type="button" data-action="play" aria-label="Reproduzir Como Divertida Mente 2 traduz a ansiedade">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg>
+                  </button>
+                  <div class="video-meta">
+                    <div class="who"><span class="avatar sm marina">M<img src="assets/marina.jpg" alt="" /></span> Marina</div>
+                    <h3>Como Divertida Mente 2 traduz a ansiedade</h3>
+                    <div class="stats">
+                      <span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg> 98 mil</span>
+                      <span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.2-4.6-7.2-9.2A4.1 4.1 0 0 1 12 8a4.1 4.1 0 0 1 7.2 3.3c0 4.6-7.2 9.2-7.2 9.2z" fill="none" stroke="currentColor" stroke-width="1.8" /></svg> 11 mil</span>
+                    </div>
+                    <span class="pill">Análise</span>
+                  </div>
+                </article>
+
+                <article class="video-card scene-city" data-extra="true" hidden data-author="Rafael" data-title="O duelo que redefiniu os monstros no cinema" data-search="rafael o duelo que redefiniu os monstros no cinema godzilla e kong curiosidade">
+                  <img class="cover" src="assets/city.jpg" alt="" />
+                  <div class="video-shade"></div>
+                  <span class="duration">02:40</span>
+                  <button class="play" type="button" data-action="play" aria-label="Reproduzir O duelo que redefiniu os monstros no cinema">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg>
+                  </button>
+                  <div class="video-meta">
+                    <div class="who"><span class="avatar sm rafael">R<img src="assets/rafael.jpg" alt="" /></span> Rafael</div>
+                    <h3>O duelo que redefiniu os monstros no cinema</h3>
+                    <div class="stats">
+                      <span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg> 76 mil</span>
+                      <span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.2-4.6-7.2-9.2A4.1 4.1 0 0 1 12 8a4.1 4.1 0 0 1 7.2 3.3c0 4.6-7.2 9.2-7.2 9.2z" fill="none" stroke="currentColor" stroke-width="1.8" /></svg> 6 mil</span>
+                    </div>
+                    <span class="pill">Curiosidade</span>
+                  </div>
+                </article>
+              </div>
+            </section>
+
+            <section id="community">
+              <div class="section-head">
+                <h2>Da comunidade</h2>
+                <div class="menu-anchor" data-menu>
+                  <button class="linkish" type="button" data-open-menu aria-expanded="false">
+                    <span id="sort-label">Mais recentes</span>
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                  </button>
+                  <div class="menu">
+                    <button type="button" data-action="sort" data-sort="recentes">Mais recentes</button>
+                    <button type="button" data-action="sort" data-sort="curtidos">Mais curtidos</button>
+                    <button type="button" data-action="sort" data-sort="comentados">Mais comentados</button>
+                  </div>
+                </div>
+              </div>
+              <div class="post-grid">
+                <article class="post-card" data-feed="critica" data-author="Marina" data-title="Duna" data-time="2" data-likes="421" data-base-likes="421" data-comments="52" data-search="marina duna denis villeneuve cinematografia fotografia ficção científica que final">
+                  <div class="post-top">
+                    <span class="avatar marina">M<img src="assets/marina.jpg" alt="" /></span>
+                    <strong>Marina</strong>
+                    <span class="time">há 2 h</span>
+                  </div>
+                  <p class="post-text">Que final! A fotografia de Duna é simplesmente absurda. Denis Villeneuve constrói um mundo que parece vivo. Já quero rever no cinema!</p>
+                  <div class="movie-ref">
+                    <div class="movie-thumb"><img src="assets/dune.jpg" alt="" /></div>
+                    <div>
+                      <strong>Duna</strong>
+                      <p>2021 · Ficção científica</p>
+                      <p class="rating"><svg class="icon star" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1L12 16.8 6.6 19.8l1-6.1L3.2 9.4l6.1-.9z" fill="currentColor" /></svg> 8,0</p>
+                    </div>
+                  </div>
+                  <div class="tags">
+                    <button class="tag" type="button" data-action="tag" data-value="Duna">#Duna</button>
+                    <button class="tag" type="button" data-action="tag" data-value="Denis Villeneuve">#DenisVilleneuve</button>
+                    <button class="tag" type="button" data-action="tag" data-value="Cinematografia">#Cinematografia</button>
+                  </div>
+                  <div class="post-actions">
+                    <button class="action" type="button" data-action="like" aria-pressed="false"><svg class="icon heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.2-4.6-7.2-9.2A4.1 4.1 0 0 1 12 8a4.1 4.1 0 0 1 7.2 3.3c0 4.6-7.2 9.2-7.2 9.2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg> Curtir <span data-count>421</span></button>
+                    <button class="action" type="button" data-action="comment"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 16.5 4 20l3.6-1.4A8.5 8.5 0 1 0 5 16.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg> Comentar <span data-comments>52</span></button>
+                    <button class="action" type="button" data-action="save" aria-pressed="false"><svg class="icon mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10a1 1 0 0 1 1 1v15l-6-3.2L6 20V5a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg> <span data-label>Salvar</span></button>
+                  </div>
+                  <form class="composer" hidden>
+                    <input type="text" placeholder="Escreva um comentário" aria-label="Escreva um comentário" />
+                    <button class="btn-accent" type="submit">Publicar</button>
+                  </form>
+                  <ul class="comments"></ul>
+                </article>
+
+                <article class="post-card" data-feed="critica" data-author="Rafael" data-title="Oppenheimer" data-time="5" data-likes="718" data-base-likes="718" data-comments="96" data-search="rafael oppenheimer christopher nolan cinema drama sequência trilha">
+                  <div class="post-top">
+                    <span class="avatar rafael">R<img src="assets/rafael.jpg" alt="" /></span>
+                    <strong>Rafael</strong>
+                    <span class="time">há 5 h</span>
+                  </div>
+                  <p class="post-text">Essa sequência de Oppenheimer é cinema puro. A trilha, a tensão e aquilo tudo na tela... arrepiou!</p>
+                  <div class="movie-ref">
+                    <div class="movie-thumb">
+                      <img src="assets/fire.jpg" alt="" />
+                      <button class="mini-play" type="button" data-action="play" aria-label="Reproduzir trecho de Oppenheimer">
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg>
+                      </button>
+                    </div>
+                    <div>
+                      <strong>Oppenheimer</strong>
+                      <p>2023 · Drama</p>
+                      <p class="rating"><svg class="icon star" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1L12 16.8 6.6 19.8l1-6.1L3.2 9.4l6.1-.9z" fill="currentColor" /></svg> 8,9</p>
+                    </div>
+                  </div>
+                  <div class="tags">
+                    <button class="tag" type="button" data-action="tag" data-value="Oppenheimer">#Oppenheimer</button>
+                    <button class="tag" type="button" data-action="tag" data-value="Christopher Nolan">#ChristopherNolan</button>
+                    <button class="tag" type="button" data-action="tag" data-value="Cinema">#Cinema</button>
+                  </div>
+                  <div class="post-actions">
+                    <button class="action" type="button" data-action="like" aria-pressed="false"><svg class="icon heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.2-4.6-7.2-9.2A4.1 4.1 0 0 1 12 8a4.1 4.1 0 0 1 7.2 3.3c0 4.6-7.2 9.2-7.2 9.2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg> Curtir <span data-count>718</span></button>
+                    <button class="action" type="button" data-action="comment"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 16.5 4 20l3.6-1.4A8.5 8.5 0 1 0 5 16.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg> Comentar <span data-comments>96</span></button>
+                    <button class="action" type="button" data-action="save" aria-pressed="false"><svg class="icon mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10a1 1 0 0 1 1 1v15l-6-3.2L6 20V5a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg> <span data-label>Salvar</span></button>
+                  </div>
+                  <form class="composer" hidden>
+                    <input type="text" placeholder="Escreva um comentário" aria-label="Escreva um comentário" />
+                    <button class="btn-accent" type="submit">Publicar</button>
+                  </form>
+                  <ul class="comments"></ul>
+                </article>
+
+                <article class="post-card" data-feed="critica" data-author="Beatriz" data-title="Tudo em Todo Lugar ao Mesmo Tempo" data-time="24" data-likes="603" data-base-likes="603" data-comments="74" data-search="beatriz tudo em todo lugar ao mesmo tempo a24 ação roteiro atuações">
+                  <div class="post-top">
+                    <span class="avatar beatriz">B<img src="assets/beatriz.jpg" alt="" /></span>
+                    <strong>Beatriz</strong>
+                    <span class="time">há 1 d</span>
+                  </div>
+                  <p class="post-text">Ainda pensando nessa cena. Que roteiro, que atuações! Tudo em Todo Lugar ao Mesmo Tempo é uma experiência única.</p>
+                  <div class="movie-ref">
+                    <div class="movie-thumb">
+                      <img src="assets/color.jpg" alt="" />
+                      <button class="mini-play" type="button" data-action="play" aria-label="Reproduzir trecho de Tudo em Todo Lugar ao Mesmo Tempo">
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg>
+                      </button>
+                    </div>
+                    <div>
+                      <strong>Tudo em Todo Lugar ao Mesmo...</strong>
+                      <p>2022 · Ação</p>
+                      <p class="rating"><svg class="icon star" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1L12 16.8 6.6 19.8l1-6.1L3.2 9.4l6.1-.9z" fill="currentColor" /></svg> 7,6</p>
+                    </div>
+                  </div>
+                  <div class="tags">
+                    <button class="tag" type="button" data-action="tag" data-value="Tudo em Todo Lugar ao Mesmo Tempo">#TudoEmTodoLugarAoMesmoTempo</button>
+                    <button class="tag" type="button" data-action="tag" data-value="A24">#A24</button>
+                  </div>
+                  <div class="post-actions">
+                    <button class="action" type="button" data-action="like" aria-pressed="false"><svg class="icon heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.2-4.6-7.2-9.2A4.1 4.1 0 0 1 12 8a4.1 4.1 0 0 1 7.2 3.3c0 4.6-7.2 9.2-7.2 9.2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg> Curtir <span data-count>603</span></button>
+                    <button class="action" type="button" data-action="comment"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 16.5 4 20l3.6-1.4A8.5 8.5 0 1 0 5 16.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg> Comentar <span data-comments>74</span></button>
+                    <button class="action" type="button" data-action="save" aria-pressed="false"><svg class="icon mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10a1 1 0 0 1 1 1v15l-6-3.2L6 20V5a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg> <span data-label>Salvar</span></button>
+                  </div>
+                  <form class="composer" hidden>
+                    <input type="text" placeholder="Escreva um comentário" aria-label="Escreva um comentário" />
+                    <button class="btn-accent" type="submit">Publicar</button>
+                  </form>
+                  <ul class="comments"></ul>
+                </article>
+
+                <article class="post-card" hidden data-feed="noticia" data-author="Marina" data-title="Duna" data-time="3" data-likes="188" data-base-likes="188" data-comments="31" data-search="marina duna villeneuve arrakis notícia próximo filme">
+                  <div class="post-top">
+                    <span class="avatar marina">M<img src="assets/marina.jpg" alt="" /></span>
+                    <strong>Marina</strong>
+                    <span class="time">há 3 h</span>
+                  </div>
+                  <p class="post-text">Villeneuve comentou que ainda existe um pedaço de Arrakis para explorar. A comunidade já está especulando o próximo filme.</p>
+                  <div class="movie-ref">
+                    <div class="movie-thumb"><img src="assets/dune.jpg" alt="" /></div>
+                    <div>
+                      <strong>Duna</strong>
+                      <p>2021 · Ficção científica</p>
+                      <p class="rating"><svg class="icon star" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1L12 16.8 6.6 19.8l1-6.1L3.2 9.4l6.1-.9z" fill="currentColor" /></svg> 8,0</p>
+                    </div>
+                  </div>
+                  <div class="tags">
+                    <button class="tag" type="button" data-action="tag" data-value="Duna">#Duna</button>
+                    <button class="tag" type="button" data-action="tag" data-value="Notícias">#Notícias</button>
+                  </div>
+                  <div class="post-actions">
+                    <button class="action" type="button" data-action="like" aria-pressed="false"><svg class="icon heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.2-4.6-7.2-9.2A4.1 4.1 0 0 1 12 8a4.1 4.1 0 0 1 7.2 3.3c0 4.6-7.2 9.2-7.2 9.2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg> Curtir <span data-count>188</span></button>
+                    <button class="action" type="button" data-action="comment"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 16.5 4 20l3.6-1.4A8.5 8.5 0 1 0 5 16.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg> Comentar <span data-comments>31</span></button>
+                    <button class="action" type="button" data-action="save" aria-pressed="false"><svg class="icon mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10a1 1 0 0 1 1 1v15l-6-3.2L6 20V5a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg> <span data-label>Salvar</span></button>
+                  </div>
+                  <form class="composer" hidden>
+                    <input type="text" placeholder="Escreva um comentário" aria-label="Escreva um comentário" />
+                    <button class="btn-accent" type="submit">Publicar</button>
+                  </form>
+                  <ul class="comments"></ul>
+                </article>
+
+                <article class="post-card" hidden data-feed="noticia" data-author="Rafael" data-title="Oppenheimer" data-time="8" data-likes="256" data-base-likes="256" data-comments="44" data-search="rafael oppenheimer nolan película notícia">
+                  <div class="post-top">
+                    <span class="avatar rafael">R<img src="assets/rafael.jpg" alt="" /></span>
+                    <strong>Rafael</strong>
+                    <span class="time">há 8 h</span>
+                  </div>
+                  <p class="post-text">Nolan soltou um recado curto sobre filmes em película. O post rendeu discussão a noite inteira.</p>
+                  <div class="movie-ref">
+                    <div class="movie-thumb"><img src="assets/fire.jpg" alt="" /></div>
+                    <div>
+                      <strong>Oppenheimer</strong>
+                      <p>2023 · Drama</p>
+                      <p class="rating"><svg class="icon star" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1L12 16.8 6.6 19.8l1-6.1L3.2 9.4l6.1-.9z" fill="currentColor" /></svg> 8,9</p>
+                    </div>
+                  </div>
+                  <div class="tags">
+                    <button class="tag" type="button" data-action="tag" data-value="Oppenheimer">#Oppenheimer</button>
+                    <button class="tag" type="button" data-action="tag" data-value="Notícias">#Notícias</button>
+                  </div>
+                  <div class="post-actions">
+                    <button class="action" type="button" data-action="like" aria-pressed="false"><svg class="icon heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.2-4.6-7.2-9.2A4.1 4.1 0 0 1 12 8a4.1 4.1 0 0 1 7.2 3.3c0 4.6-7.2 9.2-7.2 9.2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg> Curtir <span data-count>256</span></button>
+                    <button class="action" type="button" data-action="comment"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 16.5 4 20l3.6-1.4A8.5 8.5 0 1 0 5 16.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg> Comentar <span data-comments>44</span></button>
+                    <button class="action" type="button" data-action="save" aria-pressed="false"><svg class="icon mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10a1 1 0 0 1 1 1v15l-6-3.2L6 20V5a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg> <span data-label>Salvar</span></button>
+                  </div>
+                  <form class="composer" hidden>
+                    <input type="text" placeholder="Escreva um comentário" aria-label="Escreva um comentário" />
+                    <button class="btn-accent" type="submit">Publicar</button>
+                  </form>
+                  <ul class="comments"></ul>
+                </article>
+
+                <article class="post-card" hidden data-feed="noticia" data-author="Beatriz" data-title="The Last of Us" data-time="26" data-likes="340" data-base-likes="340" data-comments="57" data-search="beatriz the last of us hbo nova temporada notícia trilha">
+                  <div class="post-top">
+                    <span class="avatar beatriz">B<img src="assets/beatriz.jpg" alt="" /></span>
+                    <strong>Beatriz</strong>
+                    <span class="time">há 1 d</span>
+                  </div>
+                  <p class="post-text">A HBO confirmou novos episódios e os criadores já estão escolhendo a trilha da próxima temporada.</p>
+                  <div class="movie-ref">
+                    <div class="movie-thumb"><img src="assets/forest.jpg" alt="" /></div>
+                    <div>
+                      <strong>The Last of Us</strong>
+                      <p>2023 · Drama</p>
+                      <p class="rating"><svg class="icon star" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1L12 16.8 6.6 19.8l1-6.1L3.2 9.4l6.1-.9z" fill="currentColor" /></svg> 8,7</p>
+                    </div>
+                  </div>
+                  <div class="tags">
+                    <button class="tag" type="button" data-action="tag" data-value="The Last of Us">#TheLastOfUs</button>
+                    <button class="tag" type="button" data-action="tag" data-value="Notícias">#Notícias</button>
+                  </div>
+                  <div class="post-actions">
+                    <button class="action" type="button" data-action="like" aria-pressed="false"><svg class="icon heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.2-4.6-7.2-9.2A4.1 4.1 0 0 1 12 8a4.1 4.1 0 0 1 7.2 3.3c0 4.6-7.2 9.2-7.2 9.2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg> Curtir <span data-count>340</span></button>
+                    <button class="action" type="button" data-action="comment"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 16.5 4 20l3.6-1.4A8.5 8.5 0 1 0 5 16.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg> Comentar <span data-comments>57</span></button>
+                    <button class="action" type="button" data-action="save" aria-pressed="false"><svg class="icon mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10a1 1 0 0 1 1 1v15l-6-3.2L6 20V5a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg> <span data-label>Salvar</span></button>
+                  </div>
+                  <form class="composer" hidden>
+                    <input type="text" placeholder="Escreva um comentário" aria-label="Escreva um comentário" />
+                    <button class="btn-accent" type="submit">Publicar</button>
+                  </form>
+                  <ul class="comments"></ul>
+                </article>
+              </div>
+            </section>
+          </main>
+
+          <aside class="rail">
+            <section class="panel">
+              <div class="panel-head">
+                <h2>Assuntos em alta</h2>
+                <button class="icon-btn" type="button" data-action="toast" data-message="A lista completa de assuntos chega na próxima tela" aria-label="Ver todos os assuntos">
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                </button>
+              </div>
+              <button class="trend" type="button" data-action="trend" data-value="Duna">
+                <span class="rank">1</span>
+                <span class="trend-thumb"><img src="assets/dune.jpg" alt="" /></span>
+                <span><strong>Duna</strong><em>7,2 mil publicações</em></span>
+              </button>
+              <button class="trend" type="button" data-action="trend" data-value="Oppenheimer">
+                <span class="rank">2</span>
+                <span class="trend-thumb"><img src="assets/fire.jpg" alt="" /></span>
+                <span><strong>Oppenheimer</strong><em>6,5 mil publicações</em></span>
+              </button>
+              <button class="trend" type="button" data-action="trend" data-value="The Last of Us">
+                <span class="rank">3</span>
+                <span class="trend-thumb"><img src="assets/forest.jpg" alt="" /></span>
+                <span><strong>The Last of Us</strong><em>5,1 mil publicações</em></span>
+              </button>
+              <button class="trend" type="button" data-action="trend" data-value="Divertida Mente 2">
+                <span class="rank">4</span>
+                <span class="trend-thumb"><img src="assets/joy.jpg" alt="" /></span>
+                <span><strong>Divertida Mente 2</strong><em>4,8 mil publicações</em></span>
+              </button>
+              <button class="trend" type="button" data-action="trend" data-value="Godzilla e Kong">
+                <span class="rank">5</span>
+                <span class="trend-thumb"><img src="assets/city.jpg" alt="" /></span>
+                <span><strong>Godzilla e Kong</strong><em>4,1 mil publicações</em></span>
+              </button>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head"><h2>Criadores para seguir</h2></div>
+              <div class="creator">
+                <span class="avatar marina">M<img src="assets/marina.jpg" alt="" /></span>
+                <div><strong>Marina</strong><p>Análises e teorias</p></div>
+                <button class="follow" type="button" data-action="follow" data-follow="Marina" aria-pressed="false">Seguir</button>
+              </div>
+              <div class="creator">
+                <span class="avatar rafael">R<img src="assets/rafael.jpg" alt="" /></span>
+                <div><strong>Rafael</strong><p>Curiosidades e bastidores</p></div>
+                <button class="follow" type="button" data-action="follow" data-follow="Rafael" aria-pressed="false">Seguir</button>
+              </div>
+              <div class="creator">
+                <span class="avatar beatriz">B<img src="assets/beatriz.jpg" alt="" /></span>
+                <div><strong>Beatriz</strong><p>Críticas e recomendações</p></div>
+                <button class="follow" type="button" data-action="follow" data-follow="Beatriz" aria-pressed="false">Seguir</button>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head"><h2>Nas redes</h2></div>
+              <p class="panel-copy">Compartilhe nossa comunidade também nas redes sociais.</p>
+              <div class="socials">
+                <button class="social" type="button" data-action="social" data-message="O TikTok da comunidade chega na próxima etapa">
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4v10.2a3.2 3.2 0 1 1-2.2-3.05V8.4A6.6 6.6 0 0 0 16 10V7.2A5 5 0 0 1 14 4z" fill="currentColor" /></svg>
+                  TikTok
+                </button>
+                <button class="social" type="button" data-action="social" data-message="O YouTube da comunidade chega na próxima etapa">
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="3" fill="currentColor" /><path d="m11 9 5 3-5 3z" fill="#121a2b" /></svg>
+                  YouTube
+                </button>
+                <button class="social" type="button" data-action="social" data-message="O Instagram da comunidade chega na próxima etapa">
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="1.8" /><circle cx="12" cy="12" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8" /><circle cx="17" cy="7" r="1" fill="currentColor" /></svg>
+                  Instagram
+                </button>
+              </div>
+            </section>
+          </aside>
+        </div>
+
+        <div id="screen" class="screen" hidden></div>
+      </div>
+    </div>
+
+    <dialog id="player" class="player">
+      <div class="player-card">
+        <div class="player-stage">
+          <button class="player-toggle" type="button" data-action="toggle-playback">Pausar</button>
+          <div class="player-bar" aria-hidden="true"><span></span></div>
+        </div>
+        <div class="player-foot">
+          <div>
+            <h3 data-player-title></h3>
+            <p data-player-by></p>
+          </div>
+          <button class="btn-accent" type="button" data-action="close-player">Fechar</button>
+        </div>
+      </div>
+    </dialog>
+
+    <div id="toast" class="toast" role="status"></div>
+    <script src="js/catalog.js"></script>
+    <script src="js/screens.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
