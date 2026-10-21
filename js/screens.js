@@ -147,6 +147,10 @@
   function renderMovies() {
     const inactive = Catalog.inactiveCount();
     return `${head("Filmes", "Lista dos filmes ativos. A busca usa o início do nome.", `<button class="btn-accent" type="button" data-action="new-movie">Cadastrar filme</button>`)}
+      <section class="block"><h2>Buscar filmes e séries no TMDB</h2><p class="muted">Pesquise um filme ou série e veja trailers disponíveis no YouTube.</p>
+        <form class="inline-form" data-form="tmdb-search"><input name="query" type="search" placeholder="Ex.: Interestelar ou The Last of Us" required><button class="btn-accent" type="submit">Buscar</button></form>
+        <div id="tmdb-results"></div>
+      </section>
       ${notice()}
       <div class="lookup-row">${lookup("lookup-movie", "Buscar filme por ID")}</div>
       ${filterLine("filme")}
@@ -431,6 +435,20 @@
   function submit(form) {
     const kind = form.dataset.form;
     const id = form.dataset.id;
+
+    if (kind === "tmdb-search") {
+      const query = form.elements.namedItem("query").value.trim();
+      const target = document.querySelector("#tmdb-results");
+      if (!query || !target) return;
+      target.innerHTML = `<p class="muted">Buscando...</p>`;
+      TMDB.searchTitles(query)
+        .then((movies) => Promise.all(movies.slice(0, 5).map(async (movie) => ({ movie, videos: await TMDB.getVideos(movie.id, movie.media_type) }))))
+        .then((items) => {
+          target.innerHTML = items.length ? items.map(({ movie, videos }) => { const title = movie.title || movie.name; const date = movie.release_date || movie.first_air_date; const type = movie.media_type === "tv" ? "Série" : "Filme"; return `<article class="block"><h3>${esc(title)} ${date ? `(${date.slice(0, 4)})` : ""} <small>· ${type}</small></h3><p class="muted">${esc(movie.overview || "Sem sinopse disponível.")}</p>${videos.length ? videos.slice(0, 2).map((video) => `<h4>${esc(video.name)}</h4><iframe width="100%" height="315" src="https://www.youtube.com/embed/${encodeURIComponent(video.key)}" title="${esc(video.name)}" allowfullscreen></iframe>`).join("") : `<p class="muted">Nenhum trailer encontrado.</p>`}</article>`; }).join("") : `<p class="catalog-empty">Nenhum filme ou série encontrado.</p>`;
+        })
+        .catch((error) => { target.innerHTML = `<p class="notice" role="alert">${esc(error.message)}</p>`; });
+      return;
+    }
 
     if (kind === "lookup-movie" || kind === "lookup-user") {
       const value = form.elements.namedItem("id").value.trim();
