@@ -4,8 +4,8 @@ const state = {
   sort: "recentes",
   showAll: false,
   following: new Set(),
-  nav: "comunidade",
-  view: { name: "comunidade" },
+  nav: "inicio",
+  view: { name: "inicio" },
   stack: [],
   notice: "",
   formErrors: null,
@@ -43,27 +43,28 @@ document.addEventListener("submit", (event) => {
   const screenForm = event.target.closest("[data-form]");
   if (screenForm) {
     event.preventDefault();
+    if (!["tmdb-search", "lookup-movie", "lookup-user"].includes(screenForm.dataset.form) && !Auth.requireLogin()) return;
+    if (screenForm.dataset.form === "community-post") {
+      const texto = screenForm.elements.namedItem("texto").value.trim();
+      const filmeId = screenForm.elements.namedItem("filmeId").value;
+      const filme = Catalog.getMovie(filmeId);
+      if (!texto || !filme.ok) { showToast("Escolha um filme ou série do catálogo."); return; }
+      Community.publish({ texto, filmeId: Number(filmeId), tituloFilme: filme.movie.nome, categoria: "critica" }).then(() => { screenForm.reset(); screenForm.hidden = true; document.querySelector('[data-action="toggle-compose"]').setAttribute("aria-expanded", "false"); showToast("Publicação salva"); }).catch((error) => showToast(error.message));
+      return;
+    }
     Screens.submit(screenForm);
     return;
   }
   const form = event.target.closest(".composer");
   if (!form) return;
   event.preventDefault();
+  if (!Auth.requireLogin()) return;
   const input = form.querySelector("input");
   const text = input.value.trim();
   if (!text) return;
-
   const card = form.closest(".post-card");
-  const item = document.createElement("li");
-  item.textContent = `Lucas: ${text}`;
-  card.querySelector(".comments").appendChild(item);
-  input.value = "";
-
-  const next = Number(card.dataset.comments) + 1;
-  card.dataset.comments = String(next);
-  card.querySelector("[data-comments]").textContent = next;
-  sortPosts();
-  showToast("Comentário publicado");
+  if (!card.dataset.postId) { showToast("Comunidade indisponível no momento"); return; }
+  Community.comment(card.dataset.postId, text).then(() => showToast("Comentário publicado")).catch((error) => showToast(error.message));
 });
 
 document.querySelector("#search").addEventListener("input", (event) => {
@@ -71,6 +72,14 @@ document.querySelector("#search").addEventListener("input", (event) => {
   const onForm = ["filme-form", "usuario-form", "filme", "perfil"].includes(state.view.name);
   if (state.nav === "comunidade" && state.view.name === "comunidade") applyFilters();
   else if (!onForm) Screens.render();
+});
+document.querySelector("#search").addEventListener("keydown", async (event) => {
+  if (event.key !== "Enter" || state.nav === "comunidade") return;
+  event.preventDefault();
+  const query = event.target.value.trim();
+  if (query.length < 2) return;
+  try { const rows = await Catalog.search(query); state.notice = `${rows.length} título(s) encontrado(s).`; Screens.render(); }
+  catch (error) { state.notice = error.message; Screens.render(); }
 });
 
 document.addEventListener("keydown", (event) => {
@@ -83,10 +92,27 @@ player.addEventListener("click", (event) => {
 
 function handleAction(el) {
   const action = el.dataset.action;
-  if (window.Screens && Screens.handle(action, el)) return;
+  if (["new-movie", "edit-movie", "delete-movie", "new-user", "edit-user", "delete-user", "toggle-follow", "toggle-watched", "toggle-favorite", "follow", "like", "save", "comment", "save-video", "social"].includes(action) && !Auth.requireLogin()) return;
+  if (action === "login") { Auth.login(); return; }
+  if (action === "logout") { Auth.logout(); return; }
+  if (action === "toggle-compose") { if (!Auth.requireLogin()) return; const form = document.querySelector('[data-form="community-post"]'); form.hidden = !form.hidden; el.setAttribute("aria-expanded", String(!form.hidden)); if (!form.hidden) Community.refreshMovies(); return; }
+  if (action === "toggle-film-search") { const row = document.querySelector(".community-film-search"); row.hidden = !row.hidden; if (!row.hidden) row.querySelector("input").focus(); return; }
+  if (action === "community-search") {
+    const row = document.querySelector(".community-film-search");
+    const query = row.querySelector("input").value.trim();
+    if (query.length < 2) { showToast("Digite pelo menos duas letras."); return; }
+    el.disabled = true; el.textContent = "Pesquisando...";
+    Catalog.search(query).then((items) => { Community.refreshMovies(items[0]?.id); Screens.render(); showToast(items.length ? `${items.length} título(s) encontrados.` : "Nenhum título encontrado."); }).catch((error) => showToast(error.message)).finally(() => { el.disabled = false; el.textContent = "Pesquisar"; });
+    return;
+  }
+  if (action === "nav" && ["lista", "perfil"].includes(el.dataset.nav) && !Auth.requireLogin()) return;
+  if (window.Screens?.handles(action)) { Screens.handle(action, el); return; }
 
   if (action === "tab") {
     state.tab = el.dataset.tab;
+    const compose = document.querySelector('[data-form="community-post"]');
+    compose.hidden = true;
+    document.querySelector('[data-action="toggle-compose"]').setAttribute("aria-expanded", "false");
     document.querySelectorAll(".tab").forEach((tab) => {
       const on = tab === el;
       tab.classList.toggle("is-active", on);
@@ -110,35 +136,29 @@ function handleAction(el) {
 
   if (action === "follow") {
     const name = el.dataset.follow;
-    if (state.following.has(name)) state.following.delete(name);
-    else state.following.add(name);
-    const on = state.following.has(name);
-    document.querySelectorAll(`[data-follow="${name}"]`).forEach((button) => {
-      button.classList.toggle("is-on", on);
-      button.textContent = on ? "Seguindo" : "Seguir";
-      button.setAttribute("aria-pressed", String(on));
-    });
-    applyFilters();
-    showToast(on ? `Você seguiu ${name}` : `Você deixou de seguir ${name}`);
+    const profile = Catalog.listUsers().find((user) => user.displayName === name);
+    if (!profile) { showToast("Este perfil ilustrativo ainda não tem conta."); return; }
+    Catalog.toggleFollow(profile.id).then((result) => {
+      if (!result.ok) { showToast(result.error); return; }
+      if (state.following.has(name)) state.following.delete(name); else state.following.add(name);
+      const on = state.following.has(name);
+      document.querySelectorAll(`[data-follow="${name}"]`).forEach((button) => { button.classList.toggle("is-on", on); button.textContent = on ? "Seguindo" : "Seguir"; button.setAttribute("aria-pressed", String(on)); });
+      applyFilters(); showToast(on ? `Você seguiu ${name}` : `Você deixou de seguir ${name}`);
+    }).catch((error) => showToast(error.message));
     return;
   }
 
   if (action === "like") {
     const card = el.closest(".post-card");
-    const on = el.classList.toggle("is-on");
-    const likes = Number(card.dataset.baseLikes) + (on ? 1 : 0);
-    card.dataset.likes = String(likes);
-    el.querySelector("[data-count]").textContent = likes;
-    el.setAttribute("aria-pressed", String(on));
-    sortPosts();
+    if (!card.dataset.postId) { showToast("Comunidade indisponível no momento"); return; }
+    Community.toggle(card.dataset.postId, "curtida").catch((error) => showToast(error.message));
     return;
   }
 
   if (action === "save") {
-    const on = el.classList.toggle("is-on");
-    el.querySelector("[data-label]").textContent = on ? "Salvo" : "Salvar";
-    el.setAttribute("aria-pressed", String(on));
-    showToast(on ? "Publicação salva" : "Publicação removida dos salvos");
+    const card = el.closest(".post-card");
+    if (!card.dataset.postId) { showToast("Comunidade indisponível no momento"); return; }
+    Community.toggle(card.dataset.postId, "salvo").then(() => showToast("Lista de salvos atualizada")).catch((error) => showToast(error.message));
     return;
   }
 
@@ -300,7 +320,8 @@ function applyFilters() {
 
   posts.forEach((card) => {
     let tabOk = false;
-    if (state.tab === "para-voce" || state.tab === "criticas") tabOk = card.dataset.feed === "critica";
+    if (state.tab === "para-voce") tabOk = true;
+    else if (state.tab === "criticas") tabOk = card.dataset.feed === "critica";
     else if (state.tab === "noticias") tabOk = card.dataset.feed === "noticia";
     else if (state.tab === "seguindo") tabOk = state.following.has(card.dataset.author);
     const queryOk = !query || card.dataset.search.includes(query);
@@ -312,7 +333,8 @@ function applyFilters() {
   const anyVideo = videos.some((card) => !card.hidden);
   const anyPost = posts.some((card) => !card.hidden);
   document.querySelector("#featured").hidden = !anyVideo;
-  document.querySelector("#community").hidden = !anyPost;
+  document.querySelector("#community").hidden = !anyPost && state.tab === "videos";
+  document.querySelector('[data-action="toggle-compose"]').hidden = state.tab === "seguindo" || state.tab === "videos";
 
   const empty = document.querySelector("#feed-empty");
   empty.hidden = anyVideo || anyPost;
@@ -365,5 +387,9 @@ function showToast(message) {
   toastTimer = setTimeout(() => toast.classList.remove("is-on"), 2400);
 }
 
-window.App = { state, go, back, replace };
-applyFilters();
+window.App = { state, go, back, replace, refreshCommunity: applyFilters, syncFollowing: () => {
+  state.following = new Set(Catalog.listUsers().filter((user) => Catalog.me().seguindo.includes(user.id)).map((user) => user.displayName));
+  applyFilters();
+} };
+showPanels(false);
+Screens.render();
