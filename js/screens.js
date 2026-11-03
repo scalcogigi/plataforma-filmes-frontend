@@ -108,12 +108,12 @@
 
   function renderHome() {
     const movies = Catalog.listMovies({ prefix: prefix() }).slice(0, 8);
-    return `${head("Início", "Filmes ativos e pessoas da comunidade.")}
+    return `${head("Início", "Descubra filmes e séries no catálogo.")}
       ${notice()}
       <div class="stat-row">
         <article class="stat"><strong>${Catalog.activeCount()}</strong><span>filmes ativos</span></article>
-        <article class="stat"><strong>${Catalog.listUsers().length}</strong><span>usuários</span></article>
-        <article class="stat"><strong>${Catalog.me().favoritos.length}</strong><span>na sua lista</span></article>
+        <article class="stat"><strong>${Catalog.listMovies({ tipo: "serie" }).length}</strong><span>séries</span></article>
+        <article class="stat"><strong>${Catalog.listMovies({ tipo: "filme" }).length}</strong><span>filmes</span></article>
       </div>
       <div class="section-head"><h2>No catálogo</h2></div>
       ${filterLine("filme")}
@@ -121,15 +121,14 @@
   }
 
   function renderExplore() {
-    return `${head("Explorar", "A busca de cima filtra pelo início do nome. O ID abre o registro exato.")}
+    return `${head("Explorar", "Pesquise filmes e séries pelo título. Os resultados passam a fazer parte do catálogo.")}
       ${notice()}
-      <div class="lookup-row">${lookup("lookup-movie", "ID do filme")}${lookup("lookup-user", "ID do usuário")}</div>
+      ${Catalog.error() ? `<p class="notice" role="alert">${esc(Catalog.error())}</p>` : ""}
+      <form class="inline-form" data-form="tmdb-search"><input name="query" type="search" placeholder="Ex.: Homem de Ferro" required><button class="btn-accent" type="submit">Pesquisar</button></form>
       ${filterLine("filme")}
-      <div class="section-head"><h2>Filmes</h2><button class="btn-accent" type="button" data-action="new-movie">Cadastrar filme</button></div>
+      <div class="section-head"><h2>Filmes e séries</h2></div>
       ${cards(Catalog.listMovies({ prefix: prefix() }))}
-      <div class="section-head"><h2>Usuários</h2><button class="btn-accent" type="button" data-action="new-user">Criar usuário</button></div>
-      ${filterLine("usuario")}
-      ${people(Catalog.listUsers(prefix()))}`;
+      `;
   }
 
   function renderList() {
@@ -146,21 +145,20 @@
 
   function renderMovies() {
     const inactive = Catalog.inactiveCount();
-    return `${head("Filmes", "Lista dos filmes ativos. A busca usa o início do nome.", `<button class="btn-accent" type="button" data-action="new-movie">Cadastrar filme</button>`)}
-      <section class="block"><h2>Buscar filmes e séries no TMDB</h2><p class="muted">Pesquise um filme ou série e veja trailers disponíveis no YouTube.</p>
+    return `${head("Filmes", "Filmes disponíveis no catálogo.")}
+      <section class="block"><h2>Pesquisar filmes</h2><p class="muted">Encontre um título no catálogo ou descubra um novo.</p>
         <form class="inline-form" data-form="tmdb-search"><input name="query" type="search" placeholder="Ex.: Interestelar ou The Last of Us" required><button class="btn-accent" type="submit">Buscar</button></form>
         <div id="tmdb-results"></div>
       </section>
       ${notice()}
-      <div class="lookup-row">${lookup("lookup-movie", "Buscar filme por ID")}</div>
+      ${Catalog.error() ? `<p class="notice" role="alert">${esc(Catalog.error())}</p>` : ""}
       ${filterLine("filme")}
-      ${cards(Catalog.listMovies({ prefix: prefix() }))}
-      <div class="section-head"><h2>Excluídos logicamente</h2><span class="muted">${inactive}</span></div>
-      ${inactive ? cards(Catalog.listMovies({ prefix: prefix(), active: false })) : `<p class="catalog-empty">Nenhum filme foi excluído.</p>`}`;
+      ${cards(Catalog.listMovies({ prefix: prefix(), tipo: "filme" }))}
+      `;
   }
 
   function renderSeries() {
-    return `${head("Séries", "Títulos cadastrados com o tipo série.")}
+    return `${head("Séries", "Séries disponíveis no catálogo.")}
       ${notice()}${filterLine("filme")}
       ${cards(Catalog.listMovies({ prefix: prefix(), tipo: "serie" }), "Nenhuma série cadastrada.")}`;
   }
@@ -177,6 +175,7 @@
       <button class="chip ${genre === selected ? "is-on" : ""}" type="button" data-action="pick-genre" data-genre="${esc(genre)}">${esc(genre)}</button>`).join("");
     return `${head("Gêneros", "Escolha um gênero para filtrar os títulos ativos.")}
       ${notice()}
+      ${Catalog.error() ? `<p class="notice" role="alert">${esc(Catalog.error())}</p>` : ""}
       <div class="chips">${chips}</div>
       ${filterLine("filme")}
       ${cards(Catalog.listMovies({ prefix: prefix(), genero: selected || undefined }))}`;
@@ -198,38 +197,25 @@
       <div class="detail">
         ${poster(item)}
         <div class="detail-copy">
-          <p class="muted">ID ${esc(item.id)} · ${item.ativo ? "Ativo" : "Excluído logicamente"}</p>
-          <p class="detail-score">★ ${score(item.avaliacao)}</p>
-          <p class="detail-text">${esc(item.sinopse)}</p>
+          <p class="detail-score">★ ${score(item.avaliacao)} <small>TMDB</small></p>
+          <p class="detail-text">${esc(item.sinopse || "Sinopse indisponível.")}</p>
+          ${(item.trailerUrls?.length ? item.trailerUrls : item.trailerUrl ? [item.trailerUrl] : []).map((url, index) => `<a class="platform-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer">Assistir trailer ${index + 1}</a>`).join(" ")}
           <div class="actions-row">
             ${backButton()}
-            <button class="btn-ghost ${watched ? "is-on" : ""}" type="button" data-action="toggle-watched" data-id="${esc(item.id)}">${watched ? "Assistido" : "Marcar como assistido"}</button>
-            <button class="btn-ghost ${favorite ? "is-on" : ""}" type="button" data-action="toggle-favorite" data-id="${esc(item.id)}">${favorite ? "Favorito" : "Favoritar"}</button>
-            <button class="btn-accent" type="button" data-action="edit-movie" data-id="${esc(item.id)}">Editar dados</button>
-            ${item.ativo
-              ? `<button class="btn-danger" type="button" data-action="delete-movie" data-id="${esc(item.id)}">Excluir</button>`
-              : `<button class="btn-accent" type="button" data-action="restore-movie" data-id="${esc(item.id)}">Reativar</button>`}
           </div>
           <section class="block">
-            <h2>Avaliação</h2>
-            <form class="inline-form" data-form="rating-form" data-id="${esc(item.id)}" novalidate>
-              <input name="avaliacao" type="text" inputmode="decimal" value="${esc(values.avaliacao ?? score(item.avaliacao))}" aria-label="Avaliação">
-              <button class="btn-accent" type="submit">Atualizar avaliação</button>
-              ${errors.avaliacao ? `<small class="field-error">${esc(errors.avaliacao)}</small>` : ""}
+            <h2>Avaliações da comunidade</h2>
+            <form class="sheet" data-form="review-form" data-id="${esc(item.id)}">
+              <label class="field">Sua nota (0 a 10)<input name="nota" type="number" min="0" max="10" step="0.1" required></label>
+              <label class="field">Seu comentário<textarea name="comentario" rows="3" maxlength="2000"></textarea></label>
+              <button class="btn-accent" type="submit">Publicar avaliação</button>
             </form>
+            <div class="people">${Catalog.getReviews(item.id).map((review) => `<article class="person"><strong>${esc(review.usuarioId === Auth.getUser()?.sub ? "Você" : "Membro da comunidade")}</strong><span>★ ${score(review.nota)} · ${esc(review.comentario || "Sem comentário.")}</span></article>`).join("") || `<p class="muted">Ainda não há avaliações.</p>`}</div>
           </section>
           <section class="block">
             <h2>Plataformas</h2>
             <div class="platform-links">${links}</div>
-            <form data-form="platforms-form" data-id="${esc(item.id)}" novalidate>
-              <div class="platform-list">${platformRows(values.plataformas || item.plataformas, errors)}</div>
-              <div class="actions-row">
-                <button class="btn-ghost" type="button" data-action="add-platform">Adicionar plataforma</button>
-                <button class="btn-accent" type="submit">Atualizar plataformas</button>
-              </div>
-            </form>
           </section>
-          <p class="muted">Criado em ${when(item.criadoEm)} · Atualizado em ${when(item.atualizadoEm)}</p>
         </div>
       </div>`;
   }
@@ -237,24 +223,17 @@
   function renderMovieForm(id) {
     const existing = id ? Catalog.getMovie(id) : null;
     if (id && !existing.ok) return `${head("Filme")}<p class="notice" role="alert">${esc(existing.error)}</p>${backButton()}`;
-    const base = existing && existing.ok ? existing.movie : { nome: "", ano: "", genero: "", tipo: "filme", sinopse: "", avaliacao: "", imagem: "", plataformas: [{ nome: "", url: "" }] };
+    const base = existing && existing.ok ? existing.movie : { nome: "", diretor: "", casting: [], lancamento: "", classificacaoIndicativa: 0, duracao: "", genero: "", avaliacao: "", plataformas: [{ nome: "", url: "" }] };
     const values = App.state.formValues || base;
     const errors = App.state.formErrors || {};
     return `${head(id ? "Editar filme" : "Cadastrar filme", "Todos os dados do filme são validados antes de salvar.")}
       ${notice()}
       <form class="sheet" data-form="movie-form" data-id="${esc(id || "")}" novalidate>
         ${field("nome", "Nome", input("nome", values.nome), errors)}
-        <div class="split">
-          ${field("ano", "Ano", input("ano", values.ano), errors)}
-          ${field("genero", "Gênero", input("genero", values.genero), errors)}
-        </div>
-        ${field("tipo", "Tipo", `<select name="tipo">
-          <option value="filme" ${values.tipo !== "serie" ? "selected" : ""}>Filme</option>
-          <option value="serie" ${values.tipo === "serie" ? "selected" : ""}>Série</option>
-        </select>`, errors)}
-        ${field("sinopse", "Sinopse", `<textarea name="sinopse" rows="4">${esc(values.sinopse || "")}</textarea>`, errors)}
+        <div class="split">${field("diretor", "Diretor", input("diretor", values.diretor), errors)}${field("casting", "Elenco (separado por vírgulas)", input("casting", Array.isArray(values.casting) ? values.casting.join(", ") : values.casting), errors)}</div>
+        <div class="split">${field("lancamento", "Lançamento", input("lancamento", values.lancamento, "date"), errors)}${field("genero", "Gênero", input("genero", values.genero), errors)}</div>
+        <div class="split">${field("duracao", "Duração em minutos", input("duracao", values.duracao, "number"), errors)}${field("classificacaoIndicativa", "Classificação indicativa", input("classificacaoIndicativa", values.classificacaoIndicativa, "number"), errors)}</div>
         ${field("avaliacao", "Avaliação (0 a 10)", input("avaliacao", values.avaliacao), errors)}
-        ${field("imagem", "Imagem", input("imagem", values.imagem, "text"), errors)}
         <div class="block">
           <h2>Plataformas</h2>
           <div class="platform-list">${platformRows(values.plataformas, errors)}</div>
@@ -291,9 +270,8 @@
           </dl>
           <div class="actions-row">
             ${backButton()}
-            <button class="btn-accent" type="button" data-action="edit-user" data-id="${esc(item.id)}">Editar perfil</button>
+            ${mine ? `<button class="btn-accent" type="button" data-action="edit-user" data-id="${esc(item.id)}">Editar perfil</button>` : ""}
             ${mine ? "" : `<button class="follow ${following ? "is-on" : ""}" type="button" data-action="toggle-follow" data-id="${esc(item.id)}">${following ? "Seguindo" : "Seguir"}</button>`}
-            ${mine ? "" : `<button class="btn-danger" type="button" data-action="delete-user" data-id="${esc(item.id)}">Excluir usuário</button>`}
           </div>
         </div>
       </div>
@@ -313,10 +291,9 @@
     const base = existing && existing.ok ? existing.user : { auth0Id: "", username: "", email: "", displayName: "", foto: "", bio: "" };
     const values = App.state.formValues || base;
     const errors = App.state.formErrors || {};
-    return `${head(id ? "Editar perfil" : "Criar usuário", "Auth0, usuário, e-mail, nome, foto e biografia.")}
+    return `${head("Editar meu perfil", "Atualize os dados do seu perfil.")}
       ${notice()}
       <form class="sheet" data-form="user-form" data-id="${esc(id || "")}" novalidate>
-        ${field("auth0Id", "Identificador do Auth0", input("auth0Id", values.auth0Id), errors)}
         <div class="split">
           ${field("username", "Nome de usuário", input("username", values.username), errors)}
           ${field("email", "E-mail", input("email", values.email, "email"), errors)}
@@ -355,7 +332,7 @@
     render();
   }
 
-  function handle(action, el) {
+  async function handle(action, el) {
     if (!handled.has(action)) return false;
     const id = el.dataset.id;
 
@@ -367,6 +344,7 @@
       const result = Catalog.getMovie(id);
       if (!result.ok) { App.state.notice = result.error; render(); return true; }
       App.go({ name: "filme", id: result.movie.id });
+      try { await Catalog.loadReviews(id); render(); } catch (error) { App.state.notice = error.message; render(); }
       return true;
     }
     if (action === "open-user") {
@@ -398,26 +376,14 @@
       return true;
     }
     if (action === "delete-movie") {
-      const result = Catalog.setActive(id, false);
-      App.state.notice = result.ok ? "Filme excluído logicamente. O registro continua salvo, fora da lista de ativos." : result.error;
+      const result = await Catalog.deleteMovie(id);
+      App.state.notice = result.ok ? "Filme excluído do catálogo." : result.error;
       if (result.ok) App.state.formErrors = null;
       render();
       return true;
     }
-    if (action === "restore-movie") {
-      const result = Catalog.setActive(id, true);
-      App.state.notice = result.ok ? "Filme reativado." : result.error;
-      render();
-      return true;
-    }
-    if (action === "toggle-watched" || action === "toggle-favorite") {
-      const result = action === "toggle-watched" ? Catalog.toggleWatched(id) : Catalog.toggleFavorite(id);
-      App.state.notice = result.ok ? "" : result.error;
-      render();
-      return true;
-    }
     if (action === "toggle-follow") {
-      const result = Catalog.toggleFollow(id);
+      const result = await Catalog.toggleFollow(id);
       App.state.notice = result.ok ? "" : result.error;
       render();
       return true;
@@ -432,7 +398,7 @@
     return true;
   }
 
-  function submit(form) {
+  async function submit(form) {
     const kind = form.dataset.form;
     const id = form.dataset.id;
 
@@ -440,13 +406,28 @@
       const query = form.elements.namedItem("query").value.trim();
       const target = document.querySelector("#tmdb-results");
       if (!query || !target) return;
-      target.innerHTML = `<p class="muted">Buscando...</p>`;
-      TMDB.searchTitles(query)
-        .then((movies) => Promise.all(movies.slice(0, 5).map(async (movie) => ({ movie, videos: await TMDB.getVideos(movie.id, movie.media_type) }))))
-        .then((items) => {
-          target.innerHTML = items.length ? items.map(({ movie, videos }) => { const title = movie.title || movie.name; const date = movie.release_date || movie.first_air_date; const type = movie.media_type === "tv" ? "Série" : "Filme"; return `<article class="block"><h3>${esc(title)} ${date ? `(${date.slice(0, 4)})` : ""} <small>· ${type}</small></h3><p class="muted">${esc(movie.overview || "Sem sinopse disponível.")}</p>${videos.length ? videos.slice(0, 2).map((video) => `<h4>${esc(video.name)}</h4><iframe width="100%" height="315" src="https://www.youtube.com/embed/${encodeURIComponent(video.key)}" title="${esc(video.name)}" allowfullscreen></iframe>`).join("") : `<p class="muted">Nenhum trailer encontrado.</p>`}</article>`; }).join("") : `<p class="catalog-empty">Nenhum filme ou série encontrado.</p>`;
-        })
-        .catch((error) => { target.innerHTML = `<p class="notice" role="alert">${esc(error.message)}</p>`; });
+      target.innerHTML = `<p class="muted">Buscando na TMDB...</p>`;
+      try {
+        const titles = await TMDB.searchTitles(query);
+        const rows = await Promise.all(titles.slice(0, 5).map(async (title) => ({ title, videos: await TMDB.getVideos(title.id, title.media_type) })));
+        target.innerHTML = rows.length ? rows.map(({ title, videos }) => {
+          const name = title.title || title.name;
+          const date = title.release_date || title.first_air_date;
+          const type = title.media_type === "tv" ? "Série" : "Filme";
+          const embeds = videos.length
+            ? videos.slice(0, 2).map((video) => `<h4>${esc(video.name)}</h4><iframe width="100%" height="315" src="https://www.youtube.com/embed/${encodeURIComponent(video.key)}" title="${esc(video.name)}" allowfullscreen></iframe>`).join("")
+            : `<p class="muted">Nenhum trailer encontrado.</p>`;
+          return `<article class="block"><h3>${esc(name)} ${date ? `(${date.slice(0, 4)})` : ""} <small>· ${type}</small></h3><p class="muted">${esc(title.overview || "Sem sinopse disponível.")}</p>${embeds}</article>`;
+        }).join("") : `<p class="catalog-empty">Nenhum filme ou série encontrado.</p>`;
+      } catch (error) {
+        target.innerHTML = `<p class="notice" role="alert">${esc(error.message)}</p>`;
+      }
+      return;
+    }
+
+    if (kind === "review-form") {
+      try { await Catalog.saveReview(id, form.nota.value, form.comentario.value); App.state.notice = "Avaliação publicada."; render(); }
+      catch (error) { App.state.notice = error.message; render(); }
       return;
     }
 
@@ -460,7 +441,7 @@
     }
 
     if (kind === "rating-form") {
-      const result = Catalog.updateRating(id, form.avaliacao.value);
+      const result = await Catalog.updateRating(id, form.avaliacao.value);
       if (!result.ok) { fail(result, { avaliacao: form.avaliacao.value }); return; }
       App.state.notice = "Avaliação atualizada.";
       App.state.formErrors = null;
@@ -471,7 +452,7 @@
 
     if (kind === "platforms-form") {
       const plataformas = readPlatforms(form);
-      const result = Catalog.updatePlatforms(id, plataformas);
+      const result = await Catalog.updatePlatforms(id, plataformas);
       if (!result.ok) { fail(result, { plataformas }); return; }
       App.state.notice = "Plataformas atualizadas.";
       App.state.formErrors = null;
@@ -483,15 +464,16 @@
     if (kind === "movie-form") {
       const data = {
         nome: form.nome.value,
-        ano: form.ano.value,
+        diretor: form.diretor.value,
+        casting: form.casting.value,
+        lancamento: form.lancamento.value,
+        duracao: form.duracao.value,
+        classificacaoIndicativa: form.classificacaoIndicativa.value,
         genero: form.genero.value,
-        tipo: form.tipo.value,
-        sinopse: form.sinopse.value,
         avaliacao: form.avaliacao.value,
-        imagem: form.imagem.value,
         plataformas: readPlatforms(form),
       };
-      const result = id ? Catalog.updateMovie(id, data) : Catalog.createMovie(data);
+      const result = await (id ? Catalog.updateMovie(id, data) : Catalog.createMovie(data));
       if (!result.ok) { fail(result, data); return; }
       App.state.notice = id ? "Filme atualizado." : "Filme cadastrado.";
       App.state.formErrors = null;
@@ -502,14 +484,13 @@
 
     if (kind === "user-form") {
       const data = {
-        auth0Id: form.auth0Id.value,
         username: form.username.value,
         email: form.email.value,
         displayName: form.displayName.value,
         foto: form.foto.value,
         bio: form.bio.value,
       };
-      const result = id ? Catalog.updateUser(id, data) : Catalog.createUser(data);
+      const result = await Catalog.updateUser(id, data);
       if (!result.ok) { fail(result, data); return; }
       App.state.notice = id ? "Perfil atualizado." : "Usuário criado.";
       App.state.formErrors = null;
@@ -518,5 +499,5 @@
     }
   }
 
-  window.Screens = { render, handle, submit };
+  window.Screens = { render, handle, submit, handles: (action) => handled.has(action) };
 })();

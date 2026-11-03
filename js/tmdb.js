@@ -1,5 +1,5 @@
 (function () {
-  const API_KEY = "COLE_SUA_CHAVE_TMDB_AQUI";
+  const API_KEY = "d626b1ead179e26213c3e1616b1c3de3";
   const API_URL = "https://api.themoviedb.org/3";
   async function request(path, params = {}) {
     if (!API_KEY || API_KEY.startsWith("COLE_")) throw new Error("Configure sua chave da TMDB em js/tmdb.js.");

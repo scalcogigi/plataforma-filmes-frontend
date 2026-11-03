@@ -1271,6 +1271,7 @@ main,
 }
 
 .auth-card {
+  position: relative;
   width: min(440px, 100%);
   padding: 38px;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -1304,6 +1305,14 @@ main,
   cursor: pointer;
   background: #ff3b5c;
 }
+
+.auth-card button.auth-close { position: absolute; top: 12px; left: 14px; right: auto; width: 34px; min-height: 34px; padding: 0; border-radius: 50%; background: transparent; font-size: 26px; line-height: 1; }
+.auth-card button.auth-close:hover { background: rgba(255,255,255,.12); }
+[data-auth-member][hidden], [data-auth-guest][hidden] { display: none !important; }
+.nav-btn[hidden], .menu-anchor[hidden] { display: none !important; }
+.panel[hidden], .community-compose[hidden], .community-film-search[hidden] { display: none !important; }
+.btn-ghost[hidden] { display: none !important; }
+.community-compose { margin-top: 14px; margin-bottom: 22px; padding: 20px; border: 1px solid rgba(255,255,255,.1); border-radius: 16px; background: #151b2a; }
 
 .auth-error {
   margin-top: 16px !important;

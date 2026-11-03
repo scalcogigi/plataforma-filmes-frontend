@@ -1,17 +1,22 @@
 (function () {
+  const publicAuthError = "Não foi possível entrar ou criar sua conta agora. Tente novamente em instantes.";
   let client;
   let currentUser = null;
+  let initializationError = null;
 
   function createGate() {
     const gate = document.createElement("div");
 
     gate.className = "auth-gate";
+    gate.hidden = true;
 
     gate.innerHTML = `
       <section
         class="auth-card"
+        style="position:relative"
         aria-labelledby="auth-title"
       >
+        <button type="button" data-auth-close aria-label="Fechar" class="auth-close" style="position:absolute;top:12px;left:14px;right:auto;width:34px;height:34px;min-height:34px;padding:0;border-radius:50%;background:transparent;font-size:26px;line-height:1;z-index:1">×</button>
         <h1 id="auth-title">
           Sua sessão cinematográfica
         </h1>
@@ -42,6 +47,7 @@
     gate
       .querySelector("[data-auth-login]")
       .addEventListener("click", login);
+    gate.querySelector("[data-auth-close]").addEventListener("click", () => { gate.hidden = true; });
 
     return gate;
   }
@@ -49,18 +55,19 @@
   const gate = createGate();
 
   function showError(error) {
+    console.warn("Falha no acesso à conta:", error);
     const element =
       gate.querySelector("[data-auth-error]");
 
-    element.textContent =
-      error.message ||
-      "Não foi possível autenticar.";
+    element.textContent = publicAuthError;
 
     element.hidden = false;
   }
 
   async function login() {
-    await client.loginWithRedirect({
+    gate.querySelector("[data-auth-error]").hidden = true;
+    if (!client) { gate.hidden = false; showError(initializationError || new Error("O login ainda está carregando. Tente novamente em instantes.")); return; }
+    try { await client.loginWithRedirect({
       authorizationParams: {
         redirect_uri: window.location.origin,
         audience:
@@ -70,7 +77,7 @@
       appState: {
         returnTo: window.location.pathname,
       },
-    });
+    }); } catch (error) { gate.hidden = false; showError(error); }
   }
 
   async function logout() {
@@ -91,12 +98,17 @@
       );
     }
 
-    return client.getTokenSilently({
-      authorizationParams: {
-        audience:
-          window.APP_CONFIG.auth0.audience,
-      },
-    });
+    try {
+      return await client.getTokenSilently({
+        authorizationParams: {
+          audience:
+            window.APP_CONFIG.auth0.audience,
+        },
+      });
+    } catch (error) {
+      console.warn("Falha ao renovar o acesso:", error);
+      throw new Error("Não foi possível concluir esta ação. Entre novamente e tente outra vez.");
+    }
   }
 
   function usernameFrom(user) {
@@ -116,6 +128,9 @@
   }
 
   async function syncProfile(user) {
+    let existing = null;
+    try { existing = await window.Api.users("/users/me"); } catch (error) { if (error.status !== 404) throw error; }
+    if (existing) return existing;
     return window.Api.users(
       "/users/me",
       {
@@ -179,6 +194,7 @@
   }
 
   async function init() {
+    window.Catalog.loadPublic().then(() => { window.Screens?.render(); window.Community?.refreshMovies(); window.Community?.load(); }).catch((error) => { console.warn("Catálogo indisponível:", error); window.Screens?.render(); });
     const config =
       window.APP_CONFIG.auth0;
 
@@ -190,7 +206,8 @@
       );
     }
 
-    client = await createAuth0Client({
+    if (!window.auth0?.createAuth0Client) throw new Error("Biblioteca de login indisponível. Recarregue a página e verifique a conexão.");
+    client = await window.auth0.createAuth0Client({
       domain: config.domain,
       clientId: config.clientId,
 
@@ -202,35 +219,35 @@
       cacheLocation: "localstorage",
     });
 
-    const hasAuthorizationCode =
-      window.location.search.includes("code=");
+    const params = new URLSearchParams(window.location.search);
+    const hasCallback = params.has("state") &&
+      (params.has("code") || params.has("error"));
 
-    const hasState =
-      window.location.search.includes("state=");
-
-    if (
-      hasAuthorizationCode &&
-      hasState
-    ) {
-      const result =
-        await client.handleRedirectCallback();
-
-      window.history.replaceState(
-        {},
-        document.title,
-        result.appState?.returnTo ||
-          window.location.pathname
-      );
+    if (hasCallback) {
+      try {
+        const result = await client.handleRedirectCallback();
+        window.history.replaceState(
+          {}, document.title,
+          result.appState?.returnTo || window.location.pathname
+        );
+      } catch (error) {
+        const detail = params.get("error_description") || error.message || "Erro desconhecido.";
+        window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+        gate.hidden = false;
+        showError(new Error(detail));
+        return;
+      }
     }
 
     if (
       !(await client.isAuthenticated())
     ) {
-      gate.hidden = false;
       return;
     }
 
     currentUser = await client.getUser();
+    document.querySelectorAll("[data-auth-guest]").forEach((el) => { el.hidden = true; });
+    document.querySelectorAll("[data-auth-member]").forEach((el) => { el.hidden = false; });
 
     updateHeader(currentUser);
 
@@ -238,11 +255,13 @@
 
     try {
       await syncProfile(currentUser);
+      await window.Catalog.load();
+      window.Screens?.render();
+      window.Community?.refreshMovies();
+      window.App?.syncFollowing();
+      await window.Community?.load();
     } catch (error) {
-      console.warn(
-        "Login concluído, mas não foi possível sincronizar /users/me:",
-        error
-      );
+      showError(error);
     }
   }
 
@@ -266,7 +285,9 @@
     logout,
     getAccessToken,
     getUser: () => currentUser,
+    isAuthenticated: () => Boolean(currentUser),
+    requireLogin: () => { if (currentUser) return true; gate.hidden = false; return false; },
   };
 
-  init().catch(showError);
+  window.addEventListener("DOMContentLoaded", () => init().catch((error) => { initializationError = error; console.warn(error); }));
 })();

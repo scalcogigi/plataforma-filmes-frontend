@@ -1,21 +1,12 @@
 (function () {
   async function request(baseUrl, path, options = {}) {
-    if (!window.Auth) {
-      throw new Error(
-        "O Auth0 ainda não foi inicializado."
-      );
-    }
-
-    const token = await window.Auth.getAccessToken();
+    const token = options.public ? null : await window.Auth.getAccessToken();
 
     const headers = new Headers(
       options.headers || {}
     );
 
-    headers.set(
-      "Authorization",
-      `Bearer ${token}`
-    );
+    if (token) headers.set("Authorization", `Bearer ${token}`);
 
     if (
       options.body &&
@@ -27,13 +18,12 @@
       );
     }
 
-    const response = await fetch(
-      `${baseUrl}${path}`,
-      {
-        ...options,
-        headers,
-      }
-    );
+    let response;
+    try {
+      response = await fetch(`${baseUrl}${path}`, { ...options, headers });
+    } catch (error) {
+      throw new Error(`Não foi possível conectar ao serviço em ${baseUrl}. Verifique se a API está em execução.`);
+    }
 
     if (response.status === 204) {
       return null;
@@ -57,7 +47,9 @@
           : body ||
             `Erro HTTP ${response.status}`;
 
-      throw new Error(message);
+      const error = new Error(message);
+      error.status = response.status;
+      throw error;
     }
 
     return body;

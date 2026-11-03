@@ -1,6 +1,10 @@
 # Compiled class file
 *.class
 dist/
+<<<<<<< HEAD
+=======
+
+>>>>>>> Integracao-com-backend
 # Log file
 *.log
 
