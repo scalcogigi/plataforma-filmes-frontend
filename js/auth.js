@@ -1,4 +1,5 @@
 (function () {
+  const publicAuthError = "Não foi possível entrar ou criar sua conta agora. Tente novamente em instantes.";
   let client;
   let currentUser = null;
   let initializationError = null;
@@ -54,12 +55,11 @@
   const gate = createGate();
 
   function showError(error) {
+    console.warn("Falha no acesso à conta:", error);
     const element =
       gate.querySelector("[data-auth-error]");
 
-    element.textContent =
-      error.message ||
-      "Não foi possível autenticar.";
+    element.textContent = publicAuthError;
 
     element.hidden = false;
   }
@@ -77,7 +77,7 @@
       appState: {
         returnTo: window.location.pathname,
       },
-    }); } catch (error) { showError(error); }
+    }); } catch (error) { gate.hidden = false; showError(error); }
   }
 
   async function logout() {
@@ -98,12 +98,17 @@
       );
     }
 
-    return client.getTokenSilently({
-      authorizationParams: {
-        audience:
-          window.APP_CONFIG.auth0.audience,
-      },
-    });
+    try {
+      return await client.getTokenSilently({
+        authorizationParams: {
+          audience:
+            window.APP_CONFIG.auth0.audience,
+        },
+      });
+    } catch (error) {
+      console.warn("Falha ao renovar o acesso:", error);
+      throw new Error("Não foi possível concluir esta ação. Entre novamente e tente outra vez.");
+    }
   }
 
   function usernameFrom(user) {
@@ -214,25 +219,24 @@
       cacheLocation: "localstorage",
     });
 
-    const hasAuthorizationCode =
-      window.location.search.includes("code=");
+    const params = new URLSearchParams(window.location.search);
+    const hasCallback = params.has("state") &&
+      (params.has("code") || params.has("error"));
 
-    const hasState =
-      window.location.search.includes("state=");
-
-    if (
-      hasAuthorizationCode &&
-      hasState
-    ) {
-      const result =
-        await client.handleRedirectCallback();
-
-      window.history.replaceState(
-        {},
-        document.title,
-        result.appState?.returnTo ||
-          window.location.pathname
-      );
+    if (hasCallback) {
+      try {
+        const result = await client.handleRedirectCallback();
+        window.history.replaceState(
+          {}, document.title,
+          result.appState?.returnTo || window.location.pathname
+        );
+      } catch (error) {
+        const detail = params.get("error_description") || error.message || "Erro desconhecido.";
+        window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+        gate.hidden = false;
+        showError(new Error(detail));
+        return;
+      }
     }
 
     if (
