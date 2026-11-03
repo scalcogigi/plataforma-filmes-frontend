@@ -99,6 +99,21 @@ O front envia `window.location.origin` como `redirect_uri`. Ao usar `http://loca
 
 Se abrir o site em outra porta ou por `127.0.0.1`, cadastre exatamente essa origem também. O erro “Callback URL mismatch” não pode ser resolvido somente no código.
 
+### Publicação na Vercel
+
+O deploy usa `vercel.json` e `scripts/build.mjs`. O arquivo `js/auth-config.js` mantém os endereços locais apenas para desenvolvimento; o build gera `dist/js/auth-config.js` com os endereços públicos HTTPS. Configure estas variáveis em **Vercel → Project → Settings → Environment Variables** para Production (e Preview, caso use):
+
+| Variável | Exemplo | Descrição |
+| --- | --- | --- |
+| `USERS_API_URL` | `https://users.seudominio.com` | Endereço público da API Users |
+| `MOVIES_API_URL` | `https://movies.seudominio.com` | Endereço público da API Movies |
+
+Use apenas a origem HTTPS, sem caminho ou barra final. O build falha com uma mensagem clara enquanto uma URL estiver faltando. O projeto não precisa de `npm install`: escolha o repositório do front na Vercel, deixe a raiz do repositório como Root Directory e use as configurações de `vercel.json` (Framework: Other; saída: `dist`). Não configure URLs do Auth0 como variáveis da Vercel: domínio, Client ID e audiência já estão no arquivo de configuração. Nunca coloque Client Secret no front.
+
+Depois de receber o endereço final `https://SEU-PROJETO.vercel.app`, adicione **essa origem exata** em Allowed Callback URLs, Allowed Logout URLs e Allowed Web Origins da aplicação Frontend no Auth0. Configure também `FRONTEND_ORIGIN=https://SEU-PROJETO.vercel.app` nos dois backends e reinicie ou redeploy os serviços. O endereço configurado em CORS não deve terminar com `/`. Caso use outro domínio próprio depois, atualize Auth0, `FRONTEND_ORIGIN` e faça novo deploy.
+
+Para testar o build localmente sem publicar, defina `USERS_API_URL` e `MOVIES_API_URL` com URLs HTTPS de teste e execute `node scripts/build.mjs`. O resultado fica em `dist/`.
+
 ### Catálogo TMDB
 
 Configure `TMDB_API_KEY` no Movies Service. A pesquisa em Explorar/Filmes, ou Enter na busca superior, consulta primeiro o PostgreSQL; se não encontrar o título, importa até cinco resultados de filmes/séries, usando tipo e ID externo para evitar duplicatas. Também são salvos sinopse, imagem e até cinco links de trailers do YouTube. Para uma lista inicial, configure `CATALOG_SEED_COUNT=20` antes de iniciar o Movies Service com banco vazio (máximo 40); também existe `POST /catalogo/populares?quantidade=20` com token Auth0. O Movies Service precisa estar conectado ao PostgreSQL. Avaliações e comentários de cada conta são salvos pelo serviço de filmes.

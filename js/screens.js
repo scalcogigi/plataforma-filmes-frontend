@@ -404,9 +404,24 @@
 
     if (kind === "tmdb-search") {
       const query = form.elements.namedItem("query").value.trim();
-      if (!query) return;
-      try { const rows = await Catalog.search(query); App.state.notice = `${rows.length} título(s) encontrado(s).`; render(); }
-      catch (error) { App.state.notice = error.message; render(); }
+      const target = document.querySelector("#tmdb-results");
+      if (!query || !target) return;
+      target.innerHTML = `<p class="muted">Buscando na TMDB...</p>`;
+      try {
+        const titles = await TMDB.searchTitles(query);
+        const rows = await Promise.all(titles.slice(0, 5).map(async (title) => ({ title, videos: await TMDB.getVideos(title.id, title.media_type) })));
+        target.innerHTML = rows.length ? rows.map(({ title, videos }) => {
+          const name = title.title || title.name;
+          const date = title.release_date || title.first_air_date;
+          const type = title.media_type === "tv" ? "Série" : "Filme";
+          const embeds = videos.length
+            ? videos.slice(0, 2).map((video) => `<h4>${esc(video.name)}</h4><iframe width="100%" height="315" src="https://www.youtube.com/embed/${encodeURIComponent(video.key)}" title="${esc(video.name)}" allowfullscreen></iframe>`).join("")
+            : `<p class="muted">Nenhum trailer encontrado.</p>`;
+          return `<article class="block"><h3>${esc(name)} ${date ? `(${date.slice(0, 4)})` : ""} <small>· ${type}</small></h3><p class="muted">${esc(title.overview || "Sem sinopse disponível.")}</p>${embeds}</article>`;
+        }).join("") : `<p class="catalog-empty">Nenhum filme ou série encontrado.</p>`;
+      } catch (error) {
+        target.innerHTML = `<p class="notice" role="alert">${esc(error.message)}</p>`;
+      }
       return;
     }
 
