@@ -115,6 +115,7 @@
       !client ||
       !(await client.isAuthenticated())
     ) {
+      sessionExpired();
       throw new Error(
         "Faça login para continuar."
       );

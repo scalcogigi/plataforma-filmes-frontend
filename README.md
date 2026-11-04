@@ -85,3 +85,21 @@ python tests/browser_regression.py
 ```
 
 O teste inicia um servidor local em porta dinâmica e simula SDK Auth0 e respostas de API em um navegador isolado. Não acessa contas reais nem altera dados publicados. Opcionalmente, defina `CHROME_PATH` para usar um Chrome instalado. Os testes cobrem busca, falhas/recuperação de perfil e catálogo, sessão expirada, logout único, listas e player.
+
+## Identificar e conferir o deploy
+
+O build gera `/build-info.json` com o commit informado pela Vercel e o horário UTC do build. Os scripts recebem hashes de conteúdo no HTML gerado. Isso permite conferir qual versão chegou ao domínio publicado; não promove deployments automaticamente.
+
+Antes de publicar, teste o cadastro público Auth0 (Node 18 ou superior):
+
+```powershell
+node scripts/check-auth0.mjs
+# Outra origem cadastrada:
+node scripts/check-auth0.mjs http://localhost:5173
+# Testes sem acesso externo:
+node --test tests/auth0-config.test.mjs
+```
+
+O script usa os mesmos padrões e variáveis Auth0 do build. Não envia credenciais nem acessa uma conta. `login_required` é o resultado esperado sem sessão e confirma a aceitação do pedido; não substitui o teste de login real, emissão de token e acesso às APIs. A execução não faz parte obrigatória do build, para evitar dependência da disponibilidade do Auth0 durante a compilação.
+
+O passo a passo administrativo está em `GUIA-AUTH0.md`, na raiz do repositório Users. Depois de copiar/publicar as mudanças, faça commit também dos módulos novos `scripts/auth0-config.mjs`, `scripts/check-auth0.mjs` e dos testes.
