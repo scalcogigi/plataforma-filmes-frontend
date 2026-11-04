@@ -42,7 +42,7 @@
         <span class="poster-copy">
           <strong>${esc(item.nome)}</strong>
           <small>${esc(item.ano)} · ${esc(item.genero)}</small>
-          <small class="score">★ ${score(item.avaliacao)} · ID ${esc(item.id)}</small>
+          <small class="score">★ ${score(item.avaliacao)}</small>
         </span>
       </button>`).join("")}</div>`;
   }
@@ -124,7 +124,8 @@
     return `${head("Explorar", "Pesquise filmes e séries pelo título. Os resultados passam a fazer parte do catálogo.")}
       ${notice()}
       ${Catalog.error() ? `<p class="notice" role="alert">${esc(Catalog.error())}</p>` : ""}
-      <form class="inline-form" data-form="tmdb-search"><input name="query" type="search" placeholder="Ex.: Homem de Ferro" required><button class="btn-accent" type="submit">Pesquisar</button></form>
+      <form class="inline-form" data-form="movie-search"><input name="query" type="search" placeholder="Ex.: Homem de Ferro" required><button class="btn-accent" type="submit">Pesquisar</button></form>
+      <div id="movie-search-results" aria-live="polite"></div>
       ${filterLine("filme")}
       <div class="section-head"><h2>Filmes e séries</h2></div>
       ${cards(Catalog.listMovies({ prefix: prefix() }))}
@@ -147,8 +148,8 @@
     const inactive = Catalog.inactiveCount();
     return `${head("Filmes", "Filmes disponíveis no catálogo.")}
       <section class="block"><h2>Pesquisar filmes</h2><p class="muted">Encontre um título no catálogo ou descubra um novo.</p>
-        <form class="inline-form" data-form="tmdb-search"><input name="query" type="search" placeholder="Ex.: Interestelar ou The Last of Us" required><button class="btn-accent" type="submit">Buscar</button></form>
-        <div id="tmdb-results"></div>
+        <form class="inline-form" data-form="movie-search"><input name="query" type="search" placeholder="Ex.: Interestelar ou The Last of Us" required><button class="btn-accent" type="submit">Buscar</button></form>
+        <div id="movie-search-results" aria-live="polite"></div>
       </section>
       ${notice()}
       ${Catalog.error() ? `<p class="notice" role="alert">${esc(Catalog.error())}</p>` : ""}
@@ -402,25 +403,24 @@
     const kind = form.dataset.form;
     const id = form.dataset.id;
 
-    if (kind === "tmdb-search") {
+    if (kind === "movie-search") {
       const query = form.elements.namedItem("query").value.trim();
-      const target = document.querySelector("#tmdb-results");
+      const target = document.querySelector("#movie-search-results");
       if (!query || !target) return;
-      target.innerHTML = `<p class="muted">Buscando na TMDB...</p>`;
+      const button = form.querySelector('[type="submit"]');
+      button.disabled = true;
+      target.innerHTML = `<p class="muted" role="status">Pesquisando filmes e séries...</p>`;
       try {
-        const titles = await TMDB.searchTitles(query);
-        const rows = await Promise.all(titles.slice(0, 5).map(async (title) => ({ title, videos: await TMDB.getVideos(title.id, title.media_type) })));
-        target.innerHTML = rows.length ? rows.map(({ title, videos }) => {
-          const name = title.title || title.name;
-          const date = title.release_date || title.first_air_date;
-          const type = title.media_type === "tv" ? "Série" : "Filme";
-          const embeds = videos.length
-            ? videos.slice(0, 2).map((video) => `<h4>${esc(video.name)}</h4><iframe width="100%" height="315" src="https://www.youtube.com/embed/${encodeURIComponent(video.key)}" title="${esc(video.name)}" allowfullscreen></iframe>`).join("")
-            : `<p class="muted">Nenhum trailer encontrado.</p>`;
-          return `<article class="block"><h3>${esc(name)} ${date ? `(${date.slice(0, 4)})` : ""} <small>· ${type}</small></h3><p class="muted">${esc(title.overview || "Sem sinopse disponível.")}</p>${embeds}</article>`;
-        }).join("") : `<p class="catalog-empty">Nenhum filme ou série encontrado.</p>`;
+        const rows = await Catalog.search(query);
+        render();
+        const refreshedForm = document.querySelector('[data-form="movie-search"]');
+        if (refreshedForm) refreshedForm.elements.namedItem("query").value = query;
+        const refreshedResults = document.querySelector("#movie-search-results");
+        if (refreshedResults) refreshedResults.innerHTML = cards(rows);
       } catch (error) {
         target.innerHTML = `<p class="notice" role="alert">${esc(error.message)}</p>`;
+      } finally {
+        button.disabled = false;
       }
       return;
     }

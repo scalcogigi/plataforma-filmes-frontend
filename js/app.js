@@ -43,7 +43,7 @@ document.addEventListener("submit", (event) => {
   const screenForm = event.target.closest("[data-form]");
   if (screenForm) {
     event.preventDefault();
-    if (!["tmdb-search", "lookup-movie", "lookup-user"].includes(screenForm.dataset.form) && !Auth.requireLogin()) return;
+    if (!["movie-search", "lookup-movie", "lookup-user"].includes(screenForm.dataset.form) && !Auth.requireLogin()) return;
     if (screenForm.dataset.form === "community-post") {
       const texto = screenForm.elements.namedItem("texto").value.trim();
       const filmeId = screenForm.elements.namedItem("filmeId").value;

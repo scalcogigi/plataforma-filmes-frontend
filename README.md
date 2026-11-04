@@ -7,9 +7,9 @@ Projeto acadêmico de uma plataforma para descoberta e organização de filmes e
 - HTML5
 - CSS3
 - JavaScript puro
-- TMDB API para consulta de filmes e trailers
+- Movies Service para catálogo, busca e trailers
 - YouTube Embed para exibição dos trailers
-- `localStorage` para persistência dos dados locais
+- Auth0 para autenticação
 
 ## Como executar o front-end
 
@@ -32,43 +32,30 @@ Para encerrar o servidor, pressione `Ctrl + C`.
 
 Também é possível abrir o arquivo `index.html` usando a extensão **Live Server** do VS Code.
 
-## Configuração da TMDB
+## Catálogo e teste local com as APIs na AWS
 
-A busca de trailers está disponível em **Filmes → Buscar trailers no TMDB**.
+O Movies Service consulta primeiro os títulos já salvos no PostgreSQL. Se não encontrar o título, busca na fonte externa e grava os resultados com sinopse, imagem e links de trailers do YouTube. A chave `TMDB_API_KEY` fica somente no Movies Service; o navegador nunca recebe essa chave.
 
-1. Crie uma conta gratuita em [themoviedb.org](https://www.themoviedb.org/).
-2. Solicite uma chave em **Settings → API**.
-3. Abra o arquivo `js/tmdb.js`.
-4. Substitua o valor abaixo pela sua chave:
+Se o front roda em `http://localhost:5173` e as APIs rodam na EC2, abra **outro terminal Git Bash no seu computador** e mantenha esta conexão aberta:
 
-```js
-const API_KEY = "COLE_SUA_CHAVE_TMDB_AQUI";
+```bash
+ssh -i "/c/Users/Superframe Force/Downloads/FacLocal/2026.2/ProjAgil/projeto/projsoft26b.pem" -o ExitOnForwardFailure=yes -N -L 127.0.0.1:8080:127.0.0.1:8080 -L 127.0.0.1:8081:127.0.0.1:8081 ubuntu@13.221.156.86
 ```
 
-O projeto consulta os filmes na TMDB e mostra trailers disponíveis no YouTube. A TMDB é gratuita para uso não comercial, mas exige atribuição.
+Isso faz `localhost:8080` e `localhost:8081` do seu computador chegarem aos serviços na EC2. Verifique `http://localhost:8081/filmes` no navegador e recarregue o front. Se essa URL abrir, mas o front ainda mostrar erro de conexão, confira se o Movies Service permite a origem `http://localhost:5173` na configuração `FRONTEND_ORIGIN`.
 
-Inclua no projeto a mensagem:
-
-> Este produto usa a API do TMDB, mas não é endossado ou certificado pelo TMDB.
-
-## Segurança da chave
-
-Como este front-end é estático, qualquer chave colocada em `js/tmdb.js` poderá ser visualizada no navegador. Para um ambiente de produção, a integração deve ser movida para o backend Spring Boot, usando uma variável de ambiente como `TMDB_API_KEY`.
-
-Não publique a chave em um repositório público.
+Na primeira inicialização com banco vazio, o Movies Service carrega títulos populares quando `CATALOG_SEED_COUNT=20` está configurado. A aba **Filmes** também permite pesquisar novos títulos, que são gravados automaticamente. Para testar diretamente na EC2: `curl -G --data-urlencode "termo=Interestelar" http://127.0.0.1:8081/catalogo/pesquisar`.
 
 ## Funcionalidades principais
 
 - Navegação por início, exploração, filmes, séries, lançamentos, gêneros e comunidade.
-- Cadastro, edição e exclusão lógica de filmes e usuários.
-- Busca e filtros no catálogo local.
+- Busca e filtros no catálogo do Movies Service.
 - Favoritar filmes e marcar títulos como assistidos.
 - Avaliação de filmes.
-- Cadastro de plataformas onde o título está disponível.
-- Busca de filmes na TMDB.
+- Busca e importação de filmes e séries pelo Movies Service.
 - Exibição de trailers e teasers do YouTube.
 - Feed de comunidade com publicações, comentários e interações.
-- Persistência local dos dados usando `localStorage`.
+- Persistência de filmes e avaliações no PostgreSQL e de perfis no MongoDB.
 
 ## Backend
 
