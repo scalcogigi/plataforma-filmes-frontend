@@ -6,18 +6,21 @@
   "rewrites": [
     {
       "source": "/api/movies/:path*",
-      "destination": "http://filmes-plataformas-filmes.duckdns.org/:path*"
+      "destination": "https://filmes-plataformas-filmes.duckdns.org/:path*"
     },
     {
       "source": "/api/users/:path*",
-      "destination": "http://user-plataformas-filmes.duckdns.org/:path*"
+      "destination": "https://user-plataformas-filmes.duckdns.org/:path*"
     }
   ],
   "headers": [
     {
       "source": "/api/:path*",
       "headers": [
-        { "key": "x-vercel-enable-rewrite-caching", "value": "0" }
+        {
+          "key": "x-vercel-enable-rewrite-caching",
+          "value": "0"
+        }
       ]
     }
   ]

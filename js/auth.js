@@ -2,6 +2,8 @@
   const publicAuthError = "Não foi possível entrar ou criar sua conta agora. Tente novamente em instantes.";
   let client;
   let currentUser = null;
+  let profileReady = false;
+  let profileLoad = null;
   let initializationError = null;
 
   function createGate() {
@@ -34,6 +36,8 @@
           Entrar ou criar conta
         </button>
 
+        <button type="button" data-auth-retry hidden>Tentar carregar perfil novamente</button>
+
         <p
           class="auth-error"
           data-auth-error
@@ -47,6 +51,7 @@
     gate
       .querySelector("[data-auth-login]")
       .addEventListener("click", login);
+    gate.querySelector("[data-auth-retry]").addEventListener("click", () => loadProfile());
     gate.querySelector("[data-auth-close]").addEventListener("click", () => { gate.hidden = true; });
 
     return gate;
@@ -59,7 +64,18 @@
     const element =
       gate.querySelector("[data-auth-error]");
 
-    element.textContent = publicAuthError;
+    gate.hidden = false;
+    const message = error?.message || "";
+    element.textContent = error?.status === 401
+      ? "Sua sessão não foi aceita pelo serviço. Entre novamente para continuar."
+      : error?.status === 403
+        ? "O serviço recusou esta ação. Verifique a permissão da conta e a configuração de acesso do site."
+        : /Service not found|Callback URL mismatch/.test(message)
+          ? "A configuração do login precisa ser corrigida pela equipe do site."
+          : currentUser
+            ? "Não foi possível carregar seu perfil. Tente novamente ou entre na sua conta outra vez."
+            : publicAuthError;
+    gate.querySelector("[data-auth-retry]").hidden = !currentUser;
 
     element.hidden = false;
   }
@@ -81,11 +97,17 @@
   }
 
   async function logout() {
-    await client.logout({
-      logoutParams: {
-        returnTo: window.location.origin,
-      },
-    });
+    if (!client) return;
+    try {
+      await client.logout({ logoutParams: { returnTo: window.location.origin } });
+      currentUser = null;
+      profileReady = false;
+    } catch (error) { showError(error); }
+  }
+
+  function sessionExpired() {
+    profileReady = false;
+    showError({ status: 401 });
   }
 
   async function getAccessToken() {
@@ -107,6 +129,7 @@
       });
     } catch (error) {
       console.warn("Falha ao renovar o acesso:", error);
+      sessionExpired();
       throw new Error("Não foi possível concluir esta ação. Entre novamente e tente outra vez.");
     }
   }
@@ -194,7 +217,7 @@
   }
 
   async function init() {
-    window.Catalog.loadPublic().then(() => { window.Screens?.render(); window.Community?.refreshMovies(); window.Community?.load(); }).catch((error) => { console.warn("Catálogo indisponível:", error); window.Screens?.render(); });
+    window.Catalog.loadPublic().then(() => { window.Screens?.render(); window.Community?.refreshMovies(); window.Community?.load().catch((error) => console.warn("Comunidade indisponível:", error)); }).catch((error) => { console.warn("Catálogo indisponível:", error); window.Screens?.render(); });
     const config =
       window.APP_CONFIG.auth0;
 
@@ -246,38 +269,33 @@
     }
 
     currentUser = await client.getUser();
-    document.querySelectorAll("[data-auth-guest]").forEach((el) => { el.hidden = true; });
-    document.querySelectorAll("[data-auth-member]").forEach((el) => { el.hidden = false; });
-
-    updateHeader(currentUser);
-
-    gate.hidden = true;
-
-    try {
-      await syncProfile(currentUser);
-      await window.Catalog.load();
-      window.Screens?.render();
-      window.Community?.refreshMovies();
-      window.App?.syncFollowing();
-      await window.Community?.load();
-    } catch (error) {
-      showError(error);
-    }
+    await loadProfile();
   }
 
-  document.addEventListener(
-    "click",
-    (event) => {
-      const logoutButton =
-        event.target.closest(
-          '[data-action="logout"]'
-        );
-
-      if (logoutButton) {
-        logout();
-      }
-    }
-  );
+  async function loadProfile() {
+    if (profileLoad) return profileLoad;
+    const button = gate.querySelector("[data-auth-retry]");
+    button.disabled = true;
+    profileReady = false;
+    profileLoad = (async () => {
+      try {
+        await syncProfile(currentUser);
+        await window.Catalog.load();
+        profileReady = true;
+        document.querySelectorAll("[data-auth-guest]").forEach((el) => { el.hidden = true; });
+        document.querySelectorAll("[data-auth-member]").forEach((el) => { el.hidden = false; });
+        updateHeader(currentUser);
+        gate.hidden = true;
+        window.Screens?.render();
+        window.Community?.refreshMovies();
+        window.App?.syncFollowing();
+        // A failure in the public community feed must not invalidate the session.
+        window.Community?.load().catch((error) => console.warn("Comunidade indisponível:", error));
+      } catch (error) { showError(error); }
+      finally { button.disabled = false; }
+    })();
+    try { await profileLoad; } finally { profileLoad = null; }
+  }
 
   window.Auth = {
     init,
@@ -285,9 +303,10 @@
     logout,
     getAccessToken,
     getUser: () => currentUser,
-    isAuthenticated: () => Boolean(currentUser),
-    requireLogin: () => { if (currentUser) return true; gate.hidden = false; return false; },
+    isAuthenticated: () => Boolean(currentUser) && profileReady,
+    sessionExpired,
+    requireLogin: () => { if (currentUser && profileReady) return true; gate.hidden = false; return false; },
   };
 
-  window.addEventListener("DOMContentLoaded", () => init().catch((error) => { initializationError = error; console.warn(error); }));
+  window.addEventListener("DOMContentLoaded", () => init().catch((error) => { initializationError = error; showError(error); }));
 })();

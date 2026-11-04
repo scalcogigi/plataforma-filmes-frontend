@@ -803,37 +803,8 @@ main,
   background: #05080f center / cover no-repeat;
 }
 
-.player-toggle {
-  position: relative;
-  z-index: 1;
-  border: 0;
-  border-radius: 999px;
-  background: white;
-  color: #111;
-  font-weight: 800;
-  padding: 10px 16px;
-}
-
-.player-bar {
-  position: absolute;
-  right: 16px;
-  bottom: 16px;
-  left: 16px;
-  height: 4px;
-  overflow: hidden;
-  border-radius: 99px;
-  background: rgba(255, 255, 255, 0.25);
-}
-
-.player-bar span {
-  display: block;
-  width: 35%;
-  height: 100%;
-  background: var(--accent);
-  animation: load 8s linear infinite;
-}
-
-.player-stage.is-paused .player-bar span { animation-play-state: paused; }
+.player-stage iframe { width: 100%; aspect-ratio: 16 / 9; border: 0; display: block; }
+.player-stage p { padding: 32px; text-align: center; }
 
 .player-foot {
   display: flex;

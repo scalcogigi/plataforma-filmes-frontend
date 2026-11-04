@@ -49,6 +49,7 @@
 
       const error = new Error(message);
       error.status = response.status;
+      if (response.status === 401 && !options.public) window.Auth.sessionExpired();
       throw error;
     }
 

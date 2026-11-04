@@ -52,7 +52,7 @@ document.addEventListener("submit", (event) => {
       Community.publish({ texto, filmeId: Number(filmeId), tituloFilme: filme.movie.nome, categoria: "critica" }).then(() => { screenForm.reset(); screenForm.hidden = true; document.querySelector('[data-action="toggle-compose"]').setAttribute("aria-expanded", "false"); showToast("Publicação salva"); }).catch((error) => showToast(error.message));
       return;
     }
-    Screens.submit(screenForm);
+    Screens.submit(screenForm).catch((error) => showToast(error.message));
     return;
   }
   const form = event.target.closest(".composer");
@@ -106,7 +106,7 @@ function handleAction(el) {
     return;
   }
   if (action === "nav" && ["lista", "perfil"].includes(el.dataset.nav) && !Auth.requireLogin()) return;
-  if (window.Screens?.handles(action)) { Screens.handle(action, el); return; }
+  if (window.Screens?.handles(action)) { Screens.handle(action, el).catch((error) => showToast(error.message)); return; }
 
   if (action === "tab") {
     state.tab = el.dataset.tab;
@@ -227,11 +227,7 @@ function handleAction(el) {
     return;
   }
 
-  if (action === "toggle-playback") {
-    const paused = stage.classList.toggle("is-paused");
-    el.textContent = paused ? "Retomar" : "Pausar";
-    return;
-  }
+
 
   if (action === "toast" || action === "social") {
     showToast(el.dataset.message);
@@ -361,14 +357,41 @@ function sortPosts() {
 }
 
 function openPlayer(card) {
-  const image = card.querySelector(".cover, .movie-thumb img");
-  player.querySelector("[data-player-title]").textContent = card.dataset.title;
-  player.querySelector("[data-player-by]").textContent = card.dataset.author;
-  stage.style.backgroundImage = image ? `linear-gradient(rgba(0,0,0,.28), rgba(0,0,0,.28)), url("${image.src}")` : "none";
-  stage.classList.remove("is-paused");
-  player.querySelector("[data-action='toggle-playback']").textContent = "Pausar";
+  const titles = { "scene-space": "Interestelar", "scene-joker": "Coringa", "scene-guitar": "The Last of Us", "scene-blast": "Oppenheimer", "scene-joy": "Divertida Mente 2", "scene-city": "Godzilla e Kong" };
+  const name = card.dataset.title;
+  const movieName = Object.entries(titles).find(([className]) => card.classList.contains(className))?.[1] || name;
+  const movie = Catalog.listMovies().find((m) => m.nome.toLocaleLowerCase() === movieName.toLocaleLowerCase());
+  const links = movie?.trailerUrls?.length ? movie.trailerUrls : movie?.trailerUrl ? [movie.trailerUrl] : [];
+  let videoId;
+  for (const value of links) {
+    try {
+      const url = new URL(value);
+      if (["www.youtube.com", "youtube.com"].includes(url.hostname)) videoId = url.searchParams.get("v");
+      else if (url.hostname === "youtu.be") videoId = url.pathname.slice(1);
+      if (/^[A-Za-z0-9_-]{11}$/.test(videoId || "")) break;
+      videoId = null;
+    } catch { /* Ignore invalid trailer URLs from external data. */ }
+  }
+  stage.replaceChildren();
+  player.querySelector("[data-player-title]").textContent = movie ? `Trailer: ${movie.nome}` : movieName;
+  player.querySelector("[data-player-by]").textContent = "Trailer oficial disponível no catálogo";
+  if (videoId) {
+    const frame = document.createElement("iframe");
+    frame.src = `https://www.youtube-nocookie.com/embed/${videoId}`;
+    frame.title = `Trailer de ${movieName}`;
+    frame.allow = "encrypted-media; picture-in-picture; fullscreen";
+    frame.allowFullscreen = true;
+    frame.referrerPolicy = "strict-origin-when-cross-origin";
+    stage.appendChild(frame);
+  } else {
+    const message = document.createElement("p");
+    message.textContent = "Nenhum trailer disponível para este título no catálogo.";
+    stage.appendChild(message);
+  }
   if (!player.open) player.showModal();
 }
+
+player.addEventListener("close", () => stage.replaceChildren());
 
 function closeMenu(menu) {
   menu.classList.remove("is-open");

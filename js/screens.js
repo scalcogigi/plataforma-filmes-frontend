@@ -2,7 +2,7 @@
   const handled = new Set([
     "open-movie", "open-user", "new-movie", "edit-movie", "delete-movie", "restore-movie",
     "toggle-watched", "toggle-favorite", "new-user", "edit-user", "delete-user", "toggle-follow",
-    "pick-genre", "back-view", "add-platform", "remove-platform",
+    "retry-catalog", "pick-genre", "back-view", "add-platform", "remove-platform",
   ]);
 
   function esc(value) {
@@ -23,6 +23,10 @@
 
   function notice() {
     return App.state.notice ? `<p class="notice" role="alert">${esc(App.state.notice)}</p>` : "";
+  }
+
+  function catalogStatus() {
+    return Catalog.error() ? `<p class="notice" role="alert">${esc(Catalog.error())} <button type="button" class="btn-ghost" data-action="retry-catalog">Tentar novamente</button></p>` : "";
   }
 
   function backButton() {
@@ -103,13 +107,14 @@
   function filterLine(kind) {
     const query = prefix();
     if (!query) return "";
-    return `<p class="filter-line">${kind === "usuario" ? "Nomes que começam com" : "Títulos que começam com"} “${esc(query)}”.</p>`;
+    return `<p class="filter-line">${kind === "usuario" ? "Nomes que começam com" : "Títulos, diretores ou gêneros contendo"} “${esc(query)}”.</p>`;
   }
 
   function renderHome() {
     const movies = Catalog.listMovies({ prefix: prefix() }).slice(0, 8);
     return `${head("Início", "Descubra filmes e séries no catálogo.")}
       ${notice()}
+      ${catalogStatus()}
       <div class="stat-row">
         <article class="stat"><strong>${Catalog.activeCount()}</strong><span>filmes ativos</span></article>
         <article class="stat"><strong>${Catalog.listMovies({ tipo: "serie" }).length}</strong><span>séries</span></article>
@@ -123,7 +128,7 @@
   function renderExplore() {
     return `${head("Explorar", "Pesquise filmes e séries pelo título. Os resultados passam a fazer parte do catálogo.")}
       ${notice()}
-      ${Catalog.error() ? `<p class="notice" role="alert">${esc(Catalog.error())}</p>` : ""}
+      ${catalogStatus()}
       <form class="inline-form" data-form="movie-search"><input name="query" type="search" placeholder="Ex.: Homem de Ferro" required><button class="btn-accent" type="submit">Pesquisar</button></form>
       <div id="movie-search-results" aria-live="polite"></div>
       ${filterLine("filme")}
@@ -152,7 +157,7 @@
         <div id="movie-search-results" aria-live="polite"></div>
       </section>
       ${notice()}
-      ${Catalog.error() ? `<p class="notice" role="alert">${esc(Catalog.error())}</p>` : ""}
+      ${catalogStatus()}
       ${filterLine("filme")}
       ${cards(Catalog.listMovies({ prefix: prefix(), tipo: "filme" }))}
       `;
@@ -160,13 +165,13 @@
 
   function renderSeries() {
     return `${head("Séries", "Séries disponíveis no catálogo.")}
-      ${notice()}${filterLine("filme")}
+      ${notice()}${catalogStatus()}${filterLine("filme")}
       ${cards(Catalog.listMovies({ prefix: prefix(), tipo: "serie" }), "Nenhuma série cadastrada.")}`;
   }
 
   function renderReleases() {
     return `${head("Lançamentos", "Ativos ordenados do ano mais recente para o mais antigo.")}
-      ${notice()}${filterLine("filme")}
+      ${notice()}${catalogStatus()}${filterLine("filme")}
       ${cards(Catalog.listMovies({ prefix: prefix(), sort: "ano" }))}`;
   }
 
@@ -176,7 +181,7 @@
       <button class="chip ${genre === selected ? "is-on" : ""}" type="button" data-action="pick-genre" data-genre="${esc(genre)}">${esc(genre)}</button>`).join("");
     return `${head("Gêneros", "Escolha um gênero para filtrar os títulos ativos.")}
       ${notice()}
-      ${Catalog.error() ? `<p class="notice" role="alert">${esc(Catalog.error())}</p>` : ""}
+      ${catalogStatus()}
       <div class="chips">${chips}</div>
       ${filterLine("filme")}
       ${cards(Catalog.listMovies({ prefix: prefix(), genero: selected || undefined }))}`;
@@ -203,6 +208,8 @@
           ${(item.trailerUrls?.length ? item.trailerUrls : item.trailerUrl ? [item.trailerUrl] : []).map((url, index) => `<a class="platform-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer">Assistir trailer ${index + 1}</a>`).join(" ")}
           <div class="actions-row">
             ${backButton()}
+            <button type="button" class="btn-ghost" data-action="toggle-favorite" data-id="${esc(item.id)}" aria-pressed="${favorite}">${favorite ? "Remover dos favoritos" : "Favoritar"}</button>
+            <button type="button" class="btn-ghost" data-action="toggle-watched" data-id="${esc(item.id)}" aria-pressed="${watched}">${watched ? "Desmarcar assistido" : "Marcar como assistido"}</button>
           </div>
           <section class="block">
             <h2>Avaliações da comunidade</h2>
@@ -263,8 +270,7 @@
           <p>${esc(item.bio || "Sem biografia.")}</p>
           <dl class="facts">
             <div><dt>ID</dt><dd>${esc(item.id)}</dd></div>
-            <div><dt>Auth0</dt><dd>${esc(item.auth0Id)}</dd></div>
-            <div><dt>E-mail</dt><dd>${esc(item.email)}</dd></div>
+            ${mine ? `<div><dt>E-mail</dt><dd>${esc(item.email)}</dd></div>` : ""}
             <div><dt>Nome de usuário</dt><dd>@${esc(item.username)}</dd></div>
             <div><dt>Criado em</dt><dd>${when(item.criadoEm)}</dd></div>
             <div><dt>Atualizado em</dt><dd>${when(item.atualizadoEm)}</dd></div>
@@ -337,6 +343,21 @@
     if (!handled.has(action)) return false;
     const id = el.dataset.id;
 
+    if (action === "retry-catalog") {
+      el.disabled = true;
+      try { await Catalog.loadPublic(); } catch { /* Catalog.error supplies the visible message. */ }
+      render();
+      return true;
+    }
+    if (action === "toggle-favorite" || action === "toggle-watched") {
+      el.disabled = true;
+      try {
+        const result = await (action === "toggle-favorite" ? Catalog.toggleFavorite(id) : Catalog.toggleWatched(id));
+        App.state.notice = result.ok ? "Lista atualizada." : result.error;
+        render();
+      } finally { el.disabled = false; }
+      return true;
+    }
     if (action === "back-view") {
       App.back();
       return true;
@@ -390,7 +411,7 @@
       return true;
     }
     if (action === "delete-user") {
-      const result = Catalog.deleteUser(id);
+      const result = await Catalog.deleteUser(id);
       if (!result.ok) { App.state.notice = result.error; render(); return true; }
       App.state.notice = "Usuário excluído.";
       App.back();

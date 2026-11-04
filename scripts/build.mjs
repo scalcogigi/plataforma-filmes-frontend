@@ -17,6 +17,15 @@ await Promise.all([
 
 const sandbox = { window: {} };
 runInNewContext(await readFile(join(root, "js", "auth-config.js"), "utf8"), sandbox);
-const config = { ...sandbox.window.APP_CONFIG, api: { users: "/api/users", movies: "/api/movies" } };
+const defaults = sandbox.window.APP_CONFIG;
+const config = {
+  ...defaults,
+  auth0: {
+    domain: process.env.AUTH0_DOMAIN?.trim() || defaults.auth0.domain,
+    clientId: process.env.AUTH0_CLIENT_ID?.trim() || defaults.auth0.clientId,
+    audience: process.env.AUTH0_AUDIENCE?.trim() || defaults.auth0.audience,
+  },
+  api: { users: "/api/users", movies: "/api/movies" },
+};
 await writeFile(join(output, "js", "auth-config.js"), `window.APP_CONFIG = Object.freeze(${JSON.stringify(config, null, 2)});\n`);
 console.log("Front preparado para usar as APIs pelo proxy da Vercel.");
