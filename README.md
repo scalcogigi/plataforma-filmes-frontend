@@ -86,20 +86,18 @@ O front envia `window.location.origin` como `redirect_uri`. Ao usar `http://loca
 
 Se abrir o site em outra porta ou por `127.0.0.1`, cadastre exatamente essa origem também. O erro “Callback URL mismatch” não pode ser resolvido somente no código.
 
-### Publicação na Vercel
+### Publicação na Vercel com proxy para a EC2
 
-O deploy usa `vercel.json` e `scripts/build.mjs`. O arquivo `js/auth-config.js` mantém os endereços locais apenas para desenvolvimento; o build gera `dist/js/auth-config.js` com os endereços públicos HTTPS. Configure estas variáveis em **Vercel → Project → Settings → Environment Variables** para Production (e Preview, caso use):
+O deploy usa `vercel.json` e `scripts/build.mjs`. No build publicado, o front usa `/api/movies` e `/api/users` no próprio domínio da Vercel; as regras de rewrite encaminham essas rotas aos dois nomes DuckDNS da EC2. Em desenvolvimento local, `js/auth-config.js` continua usando `localhost:8080` e `localhost:8081`.
 
-| Variável | Exemplo | Descrição |
-| --- | --- | --- |
-| `USERS_API_URL` | `https://users.seudominio.com` | Endereço público da API Users |
-| `MOVIES_API_URL` | `https://movies.seudominio.com` | Endereço público da API Movies |
+1. No repositório Movies, copie `deploy/Caddyfile` atualizado para `~/filmes-deploy/Caddyfile` na EC2 e recrie somente o gateway com `docker compose -f gateway.compose.yml up -d --force-recreate gateway`. Os nomes no `.env` continuam `filmes-plataformas-filmes.duckdns.org` e `user-plataformas-filmes.duckdns.org`. Confirme que a porta 80 está aberta na AWS e que `http://filmes-plataformas-filmes.duckdns.org/filmes` retorna JSON e `http://user-plataformas-filmes.duckdns.org/users` retorna 401. Não use `--remove-orphans`, pois o PostgreSQL usa outro arquivo Compose.
+2. Na Vercel, importe o repositório do front, use a raiz do repositório e as configurações de `vercel.json` (Framework: Other; saída: `dist`). Não são necessárias `USERS_API_URL` nem `MOVIES_API_URL`; o projeto não precisa de `npm install`.
+3. Após o deploy, teste `https://SEU-PROJETO.vercel.app/api/movies/filmes` (JSON) e `https://SEU-PROJETO.vercel.app/api/users/users` (401 sem token). O navegador acessa ambas pelo domínio HTTPS da Vercel; o proxy encaminha as chamadas à EC2. Não habilite cache para as rotas de API.
+4. Configure a origem final `https://SEU-PROJETO.vercel.app` como **Allowed Callback URLs**, **Allowed Logout URLs** e **Allowed Web Origins** no Auth0. Atualize `FRONTEND_ORIGIN` dos dois backends com essa origem exata, sem `/` final, e execute seus deploys. Nunca coloque Client Secret no front.
 
-Use apenas a origem HTTPS, sem caminho ou barra final. O build falha com uma mensagem clara enquanto uma URL estiver faltando. O projeto não precisa de `npm install`: escolha o repositório do front na Vercel, deixe a raiz do repositório como Root Directory e use as configurações de `vercel.json` (Framework: Other; saída: `dist`). Não configure URLs do Auth0 como variáveis da Vercel: domínio, Client ID e audiência já estão no arquivo de configuração. Nunca coloque Client Secret no front.
+O trecho entre a Vercel e a EC2 usa HTTP na porta 80 nesta configuração. Dados de conta e tokens de autenticação não têm criptografia nesse trecho; use HTTPS também na origem antes de liberar login e ações autenticadas para usuários reais. O erro de audiência do Auth0 observado anteriormente é independente do proxy.
 
-Depois de receber o endereço final `https://SEU-PROJETO.vercel.app`, adicione **essa origem exata** em Allowed Callback URLs, Allowed Logout URLs e Allowed Web Origins da aplicação Frontend no Auth0. Configure também `FRONTEND_ORIGIN=https://SEU-PROJETO.vercel.app` nos dois backends e reinicie ou redeploy os serviços. O endereço configurado em CORS não deve terminar com `/`. Caso use outro domínio próprio depois, atualize Auth0, `FRONTEND_ORIGIN` e faça novo deploy.
-
-Para testar o build localmente sem publicar, defina `USERS_API_URL` e `MOVIES_API_URL` com URLs HTTPS de teste e execute `node scripts/build.mjs`. O resultado fica em `dist/`.
+Para conferir apenas o build, execute `node scripts/build.mjs`; o resultado fica em `dist/`. As regras de proxy funcionam somente quando a aplicação está publicada na Vercel.
 
 ### Catálogo TMDB
 

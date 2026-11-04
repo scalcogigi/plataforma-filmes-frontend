@@ -2,5 +2,23 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "buildCommand": "node scripts/build.mjs",
-  "outputDirectory": "dist"
+  "outputDirectory": "dist",
+  "rewrites": [
+    {
+      "source": "/api/movies/:path*",
+      "destination": "http://filmes-plataformas-filmes.duckdns.org/:path*"
+    },
+    {
+      "source": "/api/users/:path*",
+      "destination": "http://user-plataformas-filmes.duckdns.org/:path*"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/:path*",
+      "headers": [
+        { "key": "x-vercel-enable-rewrite-caching", "value": "0" }
+      ]
+    }
+  ]
 }
