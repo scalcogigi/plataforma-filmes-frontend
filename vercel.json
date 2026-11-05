@@ -6,11 +6,11 @@
   "rewrites": [
     {
       "source": "/api/movies/:path*",
-      "destination": "https://filmes-plataformas-filmes.duckdns.org/:path*"
+      "destination": "http://filmes-plataformas-filmes.duckdns.org/:path*"
     },
     {
       "source": "/api/users/:path*",
-      "destination": "https://user-plataformas-filmes.duckdns.org/:path*"
+      "destination": "http://user-plataformas-filmes.duckdns.org/:path*"
     }
   ],
   "headers": [
