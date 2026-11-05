@@ -12,13 +12,29 @@ from playwright.sync_api import sync_playwright
 ROOT = Path(__file__).resolve().parents[1]
 PROFILE = {"id": "u1", "auth0UserId": "auth0|test", "username": "ana", "displayName": "Ana", "email": "ana@example.invalid", "filmesFavoritosIds": [], "filmesAssistidosIds": [], "seguindoIds": [], "seguidoresIds": [], "createdAt": "2026-01-01T00:00:00Z", "updateAt": "2026-01-01T00:00:00Z"}
 FILM = {"id": 42, "nome": "Interestelar", "diretor": "Christopher Nolan", "genero": "Ficção científica", "lancamento": "2014-11-06", "tipo": "filme", "avaliacao": 8.7, "trailerUrl": "https://www.youtube.com/watch?v=AAAAAAAAAAA"}
-SDK = """window.auth0={createAuth0Client:async()=>({
- isAuthenticated:async()=>SIGNED_IN,
- getUser:async()=>({sub:'auth0|test',name:'Ana',email:'ana@example.invalid'}),
- getTokenSilently:async()=>{if(window.failToken) throw new Error('login_required'); return 'test-token'},
- logout:async()=>{window.logoutCalls=(window.logoutCalls||0)+1},
- loginWithRedirect:async()=>{}
-})};"""
+SDK = """window.authEvents=[];
+const realFetch=window.fetch;
+window.fetch=(...args)=>{window.authEvents.push('fetch:'+args[0]);return realFetch(...args)};
+window.auth0={Auth0Client:class {
+ constructor(){window.authEvents.push('constructor')}
+ async checkSession(){
+   window.authEvents.push('checkSession');
+   if(window.restorePending) await new Promise(resolve=>window.resumeSession=resolve);
+   if(window.restoreError) throw Object.assign(new Error(window.restoreError),{error:window.restoreError});
+ }
+ async handleRedirectCallback(){window.authEvents.push('callback');window.callbackDone=true;return {appState:{returnTo:'/'}}}
+ async isAuthenticated(){return SIGNED_IN && (!window.requireCallback || window.callbackDone)}
+ async getUser(){window.authEvents.push('getUser');return {sub:'auth0|test',name:'Ana',email:'ana@example.invalid'}}
+ async getTokenSilently(){
+   window.authEvents.push('getToken');
+   if(window.blockToken){await new Promise(resolve=>window.releaseToken=resolve);window.blockToken=false}
+   if(window.failToken) throw new Error('login_required');
+   return window.emptyToken ? '' : 'test-token';
+ }
+ async logout(){window.logoutCalls=(window.logoutCalls||0)+1}
+ async loginWithRedirect(){window.loginCalls=(window.loginCalls||0)+1}
+}};"""
+
 
 class QuietHandler(SimpleHTTPRequestHandler):
     def log_message(self, *_): pass
@@ -48,6 +64,7 @@ class BrowserRegressions(unittest.TestCase):
         self.catalog_status = 200
         self.signed_in = True
         self.calls = []
+        self.auth_headers = []
         self.errors = []
         self.page.on('pageerror', lambda error: self.errors.append(str(error)))
         self.context.route('**/*', self.route)
@@ -65,6 +82,7 @@ class BrowserRegressions(unittest.TestCase):
         if url.startswith('http://localhost:8080'):
             path = url.removeprefix('http://localhost:8080')
             self.calls.append((route.request.method, path))
+            self.auth_headers.append(route.request.headers.get("authorization"))
             if path == '/users/me' and self.profile_status != 200:
                 return route.fulfill(status=self.profile_status, body='')
             if path.startswith('/users/me/favorites/') or path.startswith('/users/me/watched/'):
@@ -145,5 +163,62 @@ class BrowserRegressions(unittest.TestCase):
         self.assertIn('/embed/AAAAAAAAAAA', self.page.locator('#player iframe').get_attribute('src'))
         self.page.locator('[data-action="close-player"]').click()
         self.page.wait_for_function('!document.querySelector("#player iframe")')
+
+    def test_silent_error_does_not_block_interactive_login(self):
+        self.page.add_init_script("window.restoreError='access_denied'")
+        self.open()
+        self.assertEqual(self.calls, [])
+        self.assertFalse(self.page.evaluate('Auth.isAuthenticated()'))
+        self.assertTrue(self.page.locator('.auth-gate').is_visible())
+        self.page.locator('[data-auth-login]').click()
+        self.assertEqual(self.page.evaluate('window.loginCalls'), 1)
+
+    def test_login_required_keeps_guest_browsing_and_login_available(self):
+        self.page.add_init_script("window.restoreError='login_required'")
+        self.open()
+        self.assertEqual(self.calls, [])
+        self.assertFalse(self.page.locator('.auth-gate').is_visible())
+        self.page.locator('.user-chip').click()
+        self.page.locator('[data-action="login"]').click()
+        self.assertEqual(self.page.evaluate('window.loginCalls'), 1)
+
+    def test_login_is_available_while_silent_restoration_is_pending(self):
+        self.page.add_init_script('window.restorePending=true')
+        self.open()
+        self.page.wait_for_function('!!window.resumeSession')
+        self.assertEqual(self.calls, [])
+        self.page.locator('.user-chip').click()
+        self.page.locator('[data-action="login"]').click()
+        self.assertEqual(self.page.evaluate('window.loginCalls'), 1)
+
+    def test_callback_precedes_profile_queries_without_silent_restoration(self):
+        self.page.add_init_script('window.requireCallback=true')
+        self.page.goto(self.base+'/?code=test-code&state=test-state', wait_until='networkidle')
+        self.page.wait_for_function('Auth.isAuthenticated()')
+        events = self.page.evaluate('window.authEvents')
+        self.assertNotIn('checkSession', events)
+        first_profile = events.index('fetch:http://localhost:8080/users/me')
+        self.assertLess(events.index('callback'), events.index('getUser'))
+        self.assertLess(events.index('getUser'), events.index('getToken'))
+        self.assertLess(events.index('getToken'), first_profile)
+        self.assertTrue(self.auth_headers)
+        self.assertTrue(all(header == 'Bearer test-token' for header in self.auth_headers))
+        self.assertNotIn('code=', self.page.url)
+
+    def test_profile_waits_for_access_token(self):
+        self.page.add_init_script('window.blockToken=true')
+        self.open()
+        self.page.wait_for_function('!!window.releaseToken')
+        self.assertEqual(self.calls, [])
+        self.page.evaluate('window.releaseToken()')
+        self.page.wait_for_function('Auth.isAuthenticated()')
+        self.assertIn(('GET','/users/me'), self.calls)
+
+    def test_empty_access_token_never_reaches_api(self):
+        self.page.add_init_script('window.emptyToken=true')
+        self.open()
+        self.assertEqual(self.calls, [])
+        self.assertFalse(self.page.evaluate('Auth.isAuthenticated()'))
+        self.assertTrue(self.page.locator('.auth-gate').is_visible())
 
 if __name__ == '__main__': unittest.main(verbosity=2)

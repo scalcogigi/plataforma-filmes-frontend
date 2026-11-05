@@ -103,3 +103,9 @@ node --test tests/auth0-config.test.mjs
 O script usa os mesmos padrões e variáveis Auth0 do build. Não envia credenciais nem acessa uma conta. `login_required` é o resultado esperado sem sessão e confirma a aceitação do pedido; não substitui o teste de login real, emissão de token e acesso às APIs. A execução não faz parte obrigatória do build, para evitar dependência da disponibilidade do Auth0 durante a compilação.
 
 O passo a passo administrativo está em `GUIA-AUTH0.md`, na raiz do repositório Users. Depois de copiar/publicar as mudanças, faça commit também dos módulos novos `scripts/auth0-config.mjs`, `scripts/check-auth0.mjs` e dos testes.
+
+### Ordem de autenticação e consulta de perfil
+
+O cliente SDK é criado com `new Auth0Client`, sem embutir uma tentativa silenciosa na construção. Um callback de login é processado antes de restaurar sessão ou consultar perfil. Sem callback, `checkSession` tenta restaurar a sessão; falha ou demora nessa tentativa não deixa o botão Entrar dependente dela. Retornos esperados de sessão ausente mantêm a navegação pública.
+
+Somente após o SDK confirmar autenticação o front lê o usuário e carrega o perfil. Cada consulta privada espera um access token não vazio antes de enviar a requisição. A validação criptográfica do token continua sendo responsabilidade dos backends. A tentativa interativa continua enviando a audiência configurada: esta mudança não contorna `Service not found` nem os problemas HTTPS do gateway.

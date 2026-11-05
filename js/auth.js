@@ -122,12 +122,16 @@
     }
 
     try {
-      return await client.getTokenSilently({
+      const token = await client.getTokenSilently({
         authorizationParams: {
           audience:
             window.APP_CONFIG.auth0.audience,
         },
       });
+      if (typeof token !== "string" || !token.trim()) {
+        throw new Error("O Auth0 não retornou um access token.");
+      }
+      return token;
     } catch (error) {
       console.warn("Falha ao renovar o acesso:", error);
       sessionExpired();
@@ -230,8 +234,9 @@
       );
     }
 
-    if (!window.auth0?.createAuth0Client) throw new Error("Biblioteca de login indisponível. Recarregue a página e verifique a conexão.");
-    client = await window.auth0.createAuth0Client({
+    if (!window.auth0?.Auth0Client) throw new Error("Biblioteca de login indisponível. Recarregue a página e verifique a conexão.");
+    // Construct synchronously: the login button must not depend on silent authentication.
+    client = new window.auth0.Auth0Client({
       domain: config.domain,
       clientId: config.clientId,
 
@@ -261,13 +266,22 @@
         showError(new Error(detail));
         return;
       }
+    } else {
+      // Process redirect callbacks first. Session restoration is a separate, optional step.
+      try {
+        await client.checkSession();
+      } catch (error) {
+        console.warn("Não foi possível restaurar a sessão:", error);
+        const code = error.error || error.code;
+        if (!["login_required", "consent_required", "interaction_required"].includes(code)) {
+          showError(error);
+        }
+        // Keep the client available so a user can still start an interactive login.
+        return;
+      }
     }
 
-    if (
-      !(await client.isAuthenticated())
-    ) {
-      return;
-    }
+    if (!(await client.isAuthenticated())) return;
 
     currentUser = await client.getUser();
     await loadProfile();
@@ -280,6 +294,11 @@
     profileReady = false;
     profileLoad = (async () => {
       try {
+        if (!currentUser?.sub || !client || !(await client.isAuthenticated())) {
+          sessionExpired();
+          return;
+        }
+        // Api.users obtains the access token before sending each protected request.
         await syncProfile(currentUser);
         await window.Catalog.load();
         profileReady = true;
